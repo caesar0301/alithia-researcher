@@ -6,7 +6,6 @@ import logging
 from typing import Any, Dict
 
 from langgraph.graph import StateGraph
-from langgraph.graph.graph import CompiledGraph
 
 from ..models.profile import ResearchProfile
 from .nodes import (
@@ -30,7 +29,7 @@ class ResearchAgent:
         """Initialize the research agent."""
         self.workflow = self._create_workflow()
 
-    def _create_workflow(self) -> CompiledGraph:
+    def _create_workflow(self):
         """Create the LangGraph workflow."""
         workflow = StateGraph(AgentState)
 
