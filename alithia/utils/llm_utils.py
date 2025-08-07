@@ -2,68 +2,48 @@
 LLM utilities for content generation using cogents.common.llm.
 """
 
+import logging
+import os
 import re
-from tempfile import TemporaryDirectory
 from typing import List, Optional
 
 import requests
 import tiktoken
-from requests.adapters import Retry
+from cogents.common.llm import get_llm_client
+from requests.adapters import HTTPAdapter, Retry
 
 from ..models.paper import ArxivPaper
 
-# Import cogents.common.llm - using placeholder for now
-# Note: This will need to be updated when cogents.common.llm is available
-try:
-    from cogents.common.llm import LLM
-except ImportError:
-    # Fallback implementation
-    class LLM:
-        """Fallback LLM implementation."""
-
-        def __init__(
-            self,
-            api_key: Optional[str] = None,
-            base_url: Optional[str] = None,
-            model: str = "gpt-4o",
-            lang: str = "English",
-        ):
-            self.api_key = api_key
-            self.base_url = base_url or "https://api.openai.com/v1"
-            self.model = model
-            self.lang = lang
-
-            # Initialize OpenAI client if API key provided
-            if api_key:
-                import openai
-
-                self.client = openai.OpenAI(api_key=api_key, base_url=self.base_url)
-            else:
-                # Fallback to mock responses
-                self.client = None
-
-        def generate(self, messages: List[Dict[str, str]]) -> str:
-            """Generate response using OpenAI API or fallback."""
-            if self.client:
-                try:
-                    response = self.client.chat.completions.create(model=self.model, messages=messages, temperature=0)
-                    return response.choices[0].message.content
-                except Exception as e:
-                    logger.warning(f"OpenAI API failed: {e}, using fallback")
-
-            # Fallback response
-            user_message = messages[-1]["content"]
-            return f"This paper presents {user_message[:100]}... The key contribution is a novel approach to the research problem."
+logger = logging.getLogger(__name__)
 
 
-def get_llm(profile) -> MockLLM:
-    """Get LLM instance based on profile configuration."""
-    return MockLLM(
-        api_key=profile.openai_api_key,
-        base_url=profile.openai_api_base,
-        model=profile.model_name,
-        lang=profile.language,
-    )
+def get_llm(profile):
+    """
+    Get LLM instance based on profile configuration.
+
+    Args:
+        profile: ResearchProfile instance
+
+    Returns:
+        LLM client instance
+    """
+    # Set environment variables for OpenRouter if using API
+    if profile.use_llm_api and profile.openai_api_key:
+        os.environ["OPENROUTER_API_KEY"] = profile.openai_api_key
+        if profile.openai_api_base:
+            os.environ["OPENAI_BASE_URL"] = profile.openai_api_base
+
+    try:
+        llm = get_llm_client()
+
+        # Override model if specified in profile
+        if profile.model_name:
+            llm.chat_model = profile.model_name
+
+        return llm
+    except Exception as e:
+        logger.warning(f"Failed to initialize LLM client: {e}")
+        raise e
 
 
 def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
@@ -76,13 +56,8 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
     Returns:
         Dictionary with extracted LaTeX content or None if extraction fails
     """
-    try:
-        with TemporaryDirectory() as tmpdirname:
-            # This would need actual arxiv paper download
-            # For now, return mock content
-            return {"all": f"\\title{{{paper.title}}}\\n\\begin{{abstract}}{paper.summary}\\end{{abstract}}"}
-    except Exception:
-        return None
+    # For now, return mock content based on paper metadata
+    return {"all": f"\\title{{{paper.title}}}\n\\begin{{abstract}}{paper.summary}\\end{{abstract}}"}
 
 
 def generate_tldr(paper: ArxivPaper, llm) -> str:
@@ -150,7 +125,11 @@ def generate_tldr(paper: ArxivPaper, llm) -> str:
         {"role": "user", "content": prompt},
     ]
 
-    return llm.generate(messages)
+    try:
+        return llm.chat_completion(messages, temperature=0)
+    except Exception as e:
+        logger.warning(f"Failed to generate TLDR: {e}")
+        return f"Failed to generate TLDR for paper: {paper.title}"
 
 
 def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
@@ -203,15 +182,15 @@ def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
     ]
 
     try:
-        result = llm.generate(messages)
+        result = llm.chat_completion(messages, temperature=0)
         affiliations_match = re.search(r"\[.*?\]", result, flags=re.DOTALL)
         if affiliations_match:
             affiliations = eval(affiliations_match.group(0))
             # Remove duplicates and convert to strings
             unique_affiliations = list(set(str(a) for a in affiliations))
             return unique_affiliations
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Failed to extract affiliations: {e}")
 
     return None
 
@@ -229,7 +208,7 @@ def get_code_url(paper: ArxivPaper) -> Optional[str]:
     try:
         session = requests.Session()
         retries = Retry(total=5, backoff_factor=0.1)
-        session.mount("https://", requests.adapters.HTTPAdapter(max_retries=retries))
+        session.mount("https://", HTTPAdapter(max_retries=retries))
 
         # Search Papers with Code
         response = session.get(f"https://paperswithcode.com/api/v1/papers/?arxiv_id={paper.arxiv_id}")
@@ -251,5 +230,6 @@ def get_code_url(paper: ArxivPaper) -> Optional[str]:
 
         return repo_list["results"][0]["url"]
 
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Failed to get code URL: {e}")
         return None

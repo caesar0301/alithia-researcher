@@ -102,8 +102,10 @@ def relevance_assessment_node(state: AgentState) -> Dict[str, Any]:
 
     if not state.zotero_corpus:
         logger.warning("No Zotero corpus available, using basic scoring")
+        from ..models.paper import ScoredPaper
+
         scored_papers = [
-            {"paper": paper, "score": 5.0, "relevance_factors": {"basic": 5.0}} for paper in state.discovered_papers
+            ScoredPaper(paper=paper, score=5.0, relevance_factors={"basic": 5.0}) for paper in state.discovered_papers
         ]
     else:
         try:
@@ -113,8 +115,10 @@ def relevance_assessment_node(state: AgentState) -> Dict[str, Any]:
         except Exception as e:
             state.add_error(f"Relevance assessment failed: {str(e)}")
             # Fallback to basic scoring
+            from ..models.paper import ScoredPaper
+
             scored_papers = [
-                {"paper": paper, "score": 5.0, "relevance_factors": {"fallback": 5.0}}
+                ScoredPaper(paper=paper, score=5.0, relevance_factors={"fallback": 5.0})
                 for paper in state.discovered_papers
             ]
 
@@ -193,7 +197,7 @@ def communication_node(state: AgentState) -> Dict[str, Any]:
         return {"current_step": "communication_error"}
 
     # Check if we should send empty email
-    if not state.email_content or state.email_content.is_empty():
+    if not state.email_content or (hasattr(state.email_content, "is_empty") and state.email_content.is_empty()):
         if not state.profile.send_empty:
             logger.info("No papers found and SEND_EMPTY=False, skipping email")
             return {"current_step": "workflow_complete", "delivery_status": "skipped_empty"}
@@ -208,7 +212,11 @@ def communication_node(state: AgentState) -> Dict[str, Any]:
             password=state.profile.sender_password,
             smtp_server=state.profile.smtp_server,
             smtp_port=state.profile.smtp_port,
-            html_content=state.email_content.html_content if state.email_content else "",
+            html_content=state.email_content
+            if isinstance(state.email_content, str)
+            else state.email_content.html_content
+            if state.email_content
+            else "",
         )
 
         if success:
