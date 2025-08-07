@@ -1,21 +1,21 @@
 [tool.poetry]
 name = "alithia-researcher"
-version = "0.0.1"
-description = "A minimal template project for building Python libraries"
+version = "0.1.0"
+description = "LangGraph-based research agent for daily ArXiv paper recommendations"
 authors = ["xmingc <chenxm35@gmail.com>"]
 maintainers = ["xmingc <chenxm35@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-keywords = ["template", "python", "library", "development"]
+keywords = ["research", "arxiv", "zotero", "agent", "langgraph"]
 classifiers = [
     "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 packages = [{include = "alithia"}]
 
@@ -23,6 +23,7 @@ packages = [{include = "alithia"}]
 python = "^3.11"
 pydantic = "^2.0.0"
 cogents = "^0.0.1"
+langgraph = "^0.5.4"
 arxiv = "^2.1.3"
 llama-cpp-python = "^0.3.2"
 loguru = "^0.7.2"
