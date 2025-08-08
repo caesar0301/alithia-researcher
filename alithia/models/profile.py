@@ -2,22 +2,22 @@
 User profile and configuration models for the Alithia research agent.
 """
 
-from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field
 
-@dataclass
-class ResearchProfile:
+
+class ResearchProfile(BaseModel):
     """Represents a user's research profile and preferences."""
 
     zotero_id: str
     zotero_key: str
-    research_interests: List[str] = field(default_factory=list)
+    research_interests: List[str] = Field(default_factory=list)
     expertise_level: str = "intermediate"
     language: str = "English"
     max_papers: int = 50
     send_empty: bool = False
-    ignore_patterns: List[str] = field(default_factory=list)
+    ignore_patterns: List[str] = Field(default_factory=list)
 
     # SMTP Configuration
     smtp_server: Optional[str] = None

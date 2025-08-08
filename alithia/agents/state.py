@@ -2,35 +2,35 @@
 Agent state management for the Alithia research agent.
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 from ..models.paper import ArxivPaper, EmailContent, ScoredPaper
 from ..models.profile import ResearchProfile
 
 
-@dataclass
-class AgentState:
+class AgentState(BaseModel):
     """Centralized state for the research agent workflow."""
 
     # User Profile
     profile: Optional[ResearchProfile] = None
 
     # Discovery State
-    discovered_papers: List[ArxivPaper] = field(default_factory=list)
-    zotero_corpus: List[Dict[str, Any]] = field(default_factory=list)
+    discovered_papers: List[ArxivPaper] = Field(default_factory=list)
+    zotero_corpus: List[Dict[str, Any]] = Field(default_factory=list)
 
     # Assessment State
-    scored_papers: List[ScoredPaper] = field(default_factory=list)
+    scored_papers: List[ScoredPaper] = Field(default_factory=list)
 
     # Content State
     email_content: Optional[EmailContent] = None
 
     # System State
     current_step: str = "initializing"
-    error_log: List[str] = field(default_factory=list)
-    performance_metrics: Dict[str, float] = field(default_factory=dict)
+    error_log: List[str] = Field(default_factory=list)
+    performance_metrics: Dict[str, float] = Field(default_factory=dict)
 
     # Debug State
     debug_mode: bool = False

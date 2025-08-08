@@ -564,14 +564,14 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
 name = "cogents"
-version = "0.0.1"
+version = "0.0.3"
 description = "A minimal template project for building Python libraries"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "cogents-0.0.1-py3-none-any.whl", hash = "sha256:ca8b97bcc31d9d8ec6ac8b5d03294ecb50c65708e9c2f4c8f38fddc3cdcb08e2"},
-    {file = "cogents-0.0.1.tar.gz", hash = "sha256:de42966bf6ea8cdb9064ca16d4b8355df47c866db767392adab75cc21d5d2caa"},
+    {file = "cogents-0.0.3-py3-none-any.whl", hash = "sha256:82b924266831292509faeb9ccd7348895fe57cd533963c43989f528cea8b8202"},
+    {file = "cogents-0.0.3.tar.gz", hash = "sha256:fd4cf06eb7601dead8bf05be136a3586f6f143e34c3c4676eb16ee6ac082b5d3"},
 ]
 
 [package.dependencies]
@@ -5277,4 +5277,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "9644ca14d689f6fa680d5dc81d48a8fd1f7af20b70bbab7a64ac62c915442017"
+content-hash = "eeeb6af9c2c625fb1082ca4e6c6df8092768db2f177864d4bc168136b4d969fd"

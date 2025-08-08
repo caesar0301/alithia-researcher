@@ -6,9 +6,9 @@ import logging
 import os
 import re
 import tarfile
-from typing import Dict, List, Optional
-from tempfile import TemporaryDirectory
 from contextlib import ExitStack
+from tempfile import TemporaryDirectory
+from typing import Dict, List, Optional
 from urllib.error import HTTPError
 
 import requests
@@ -17,11 +17,12 @@ from cogents.common.llm import get_llm_client
 from requests.adapters import HTTPAdapter, Retry
 
 from ..models.paper import ArxivPaper
+from ..models.profile import ResearchProfile
 
 logger = logging.getLogger(__name__)
 
 
-def get_llm(profile):
+def get_llm(profile: ResearchProfile):
     """
     Get LLM instance based on profile configuration.
 
@@ -33,12 +34,12 @@ def get_llm(profile):
     """
     # Configure API settings
     if profile.use_llm_api and profile.openai_api_key:
-        os.environ["OPENROUTER_API_KEY"] = profile.openai_api_key
+        os.environ["OPENAI_API_KEY"] = profile.openai_api_key
         if profile.openai_api_base:
             os.environ["OPENAI_BASE_URL"] = profile.openai_api_base
 
     try:
-        llm = get_llm_client()
+        llm = get_llm_client(provider="openai")
 
         # Set model if specified
         if profile.model_name:
@@ -63,7 +64,10 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
     with ExitStack() as stack:
         tmpdirname = stack.enter_context(TemporaryDirectory())
         try:
-            file = paper._paper.download_source(dirpath=tmpdirname)
+            if not paper.arxiv_result:
+                logger.warning(f"No arxiv result available for {paper.arxiv_id}, skipping source analysis")
+                return None
+            file = paper.arxiv_result.download_source(dirpath=tmpdirname)
         except HTTPError as e:
             if e.code == 404:
                 # Source files don't exist (normal)
@@ -79,43 +83,49 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
             logger.debug(f"Failed to find main tex file of {paper.arxiv_id}: Not a tar file.")
             return None
 
-        tex_files = [f for f in tar.getnames() if f.endswith('.tex')]
+        tex_files = [f for f in tar.getnames() if f.endswith(".tex")]
         if len(tex_files) == 0:
             logger.debug(f"Failed to find main tex file of {paper.arxiv_id}: No tex file.")
             return None
 
-        bbl_file = [f for f in tar.getnames() if f.endswith('.bbl')]
+        bbl_file = [f for f in tar.getnames() if f.endswith(".bbl")]
         match len(bbl_file):
             case 0:
                 if len(tex_files) > 1:
-                    logger.debug(f"Cannot find main tex file of {paper.arxiv_id} from bbl: There are multiple tex files while no bbl file.")
+                    logger.debug(
+                        f"Cannot find main tex file of {paper.arxiv_id} from bbl: There are multiple tex files while no bbl file."
+                    )
                     main_tex = None
                 else:
                     main_tex = tex_files[0]
             case 1:
-                main_name = bbl_file[0].replace('.bbl', '')
+                main_name = bbl_file[0].replace(".bbl", "")
                 main_tex = f"{main_name}.tex"
                 if main_tex not in tex_files:
-                    logger.debug(f"Cannot find main tex file of {paper.arxiv_id} from bbl: The bbl file does not match any tex file.")
+                    logger.debug(
+                        f"Cannot find main tex file of {paper.arxiv_id} from bbl: The bbl file does not match any tex file."
+                    )
                     main_tex = None
             case _:
                 logger.debug(f"Cannot find main tex file of {paper.arxiv_id} from bbl: There are multiple bbl files.")
                 main_tex = None
         if main_tex is None:
-            logger.debug(f"Trying to choose tex file containing the document block as main tex file of {paper.arxiv_id}")
+            logger.debug(
+                f"Trying to choose tex file containing the document block as main tex file of {paper.arxiv_id}"
+            )
         # Process all tex files
         file_contents = {}
         for t in tex_files:
             f = tar.extractfile(t)
-            content = f.read().decode('utf-8', errors='ignore')
+            content = f.read().decode("utf-8", errors="ignore")
             # Clean content
-            content = re.sub(r'%.*\n', '\n', content)
-            content = re.sub(r'\\begin{comment}.*?\\end{comment}', '', content, flags=re.DOTALL)
-            content = re.sub(r'\\iffalse.*?\\fi', '', content, flags=re.DOTALL)
-            content = re.sub(r'\n+', '\n', content)
-            content = re.sub(r'\\\\', '', content)
-            content = re.sub(r'[ \t\r\f]{3,}', ' ', content)
-            if main_tex is None and re.search(r'\\begin\{document\}', content):
+            content = re.sub(r"%.*\n", "\n", content)
+            content = re.sub(r"\\begin{comment}.*?\\end{comment}", "", content, flags=re.DOTALL)
+            content = re.sub(r"\\iffalse.*?\\fi", "", content, flags=re.DOTALL)
+            content = re.sub(r"\n+", "\n", content)
+            content = re.sub(r"\\\\", "", content)
+            content = re.sub(r"[ \t\r\f]{3,}", " ", content)
+            if main_tex is None and re.search(r"\\begin\{document\}", content):
                 main_tex = t
                 logger.debug(f"Choose {t} as main tex file of {paper.arxiv_id}")
             file_contents[t] = content
@@ -123,16 +133,20 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
         if main_tex is not None:
             main_source: str = file_contents[main_tex]
             # Resolve includes
-            include_files = re.findall(r'\\input\{(.+?)\}', main_source) + re.findall(r'\\include\{(.+?)\}', main_source)
+            include_files = re.findall(r"\\input\{(.+?)\}", main_source) + re.findall(
+                r"\\include\{(.+?)\}", main_source
+            )
             for f in include_files:
-                if not f.endswith('.tex'):
-                    file_name = f + '.tex'
+                if not f.endswith(".tex"):
+                    file_name = f + ".tex"
                 else:
                     file_name = f
-                main_source = main_source.replace(f'\\input{{{f}}}', file_contents.get(file_name, ''))
+                main_source = main_source.replace(f"\\input{{{f}}}", file_contents.get(file_name, ""))
             file_contents["all"] = main_source
         else:
-            logger.debug(f"Failed to find main tex file of {paper.arxiv_id}: No tex file containing the document block.")
+            logger.debug(
+                f"Failed to find main tex file of {paper.arxiv_id}: No tex file containing the document block."
+            )
             file_contents["all"] = None
         return file_contents
 
@@ -150,7 +164,7 @@ def generate_tldr(paper: ArxivPaper, llm) -> str:
     """
     introduction = ""
     conclusion = ""
-    
+
     # Get LaTeX content
     tex_content = extract_tex_content(paper)
     if tex_content is not None:
@@ -158,18 +172,26 @@ def generate_tldr(paper: ArxivPaper, llm) -> str:
         if content is None:
             content = "\n".join(tex_content.values())
         # Clean content
-        content = re.sub(r'~?\\cite.?\{.*?\}', '', content)
-        content = re.sub(r'\\begin\{figure\}.*?\\end\{figure\}', '', content, flags=re.DOTALL)
-        content = re.sub(r'\\begin\{table\}.*?\\end\{table\}', '', content, flags=re.DOTALL)
+        content = re.sub(r"~?\\cite.?\{.*?\}", "", content)
+        content = re.sub(r"\\begin\{figure\}.*?\\end\{figure\}", "", content, flags=re.DOTALL)
+        content = re.sub(r"\\begin\{table\}.*?\\end\{table\}", "", content, flags=re.DOTALL)
         # Extract sections
-        match = re.search(r'\\section\{Introduction\}.*?(\\section|\\end\{document\}|\\bibliography|\\appendix|$)', content, flags=re.DOTALL)
+        match = re.search(
+            r"\\section\{Introduction\}.*?(\\section|\\end\{document\}|\\bibliography|\\appendix|$)",
+            content,
+            flags=re.DOTALL,
+        )
         if match:
             introduction = match.group(0)
-        match = re.search(r'\\section\{Conclusion\}.*?(\\section|\\end\{document\}|\\bibliography|\\appendix|$)', content, flags=re.DOTALL)
+        match = re.search(
+            r"\\section\{Conclusion\}.*?(\\section|\\end\{document\}|\\bibliography|\\appendix|$)",
+            content,
+            flags=re.DOTALL,
+        )
         if match:
             conclusion = match.group(0)
-    
-    prompt = f"""Given the title, abstract, introduction and the conclusion (if any) of a paper in latex format, generate a one-sentence TLDR summary in {llm.lang}:
+
+    prompt = f"""Given the title, abstract, introduction and the conclusion (if any) of a paper in latex format, generate a one-sentence TLDR summary in English:
 
 \\title{{{paper.title}}}
 \\begin{{abstract}}{paper.summary}\\end{{abstract}}
@@ -211,7 +233,7 @@ def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
         if content is None:
             content = "\n".join(tex_content.values())
         # Find author info
-        possible_regions = [r'\\author.*?\\maketitle', r'\\begin{document}.*?\\begin{abstract}']
+        possible_regions = [r"\\author.*?\\maketitle", r"\\begin{document}.*?\\begin{abstract}"]
         matches = [re.search(p, content, flags=re.DOTALL) for p in possible_regions]
         match = next((m for m in matches if m), None)
         if match:
@@ -236,7 +258,7 @@ def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
         )
 
         try:
-            affiliations = re.search(r'\[.*?\]', affiliations, flags=re.DOTALL).group(0)
+            affiliations = re.search(r"\[.*?\]", affiliations, flags=re.DOTALL).group(0)
             affiliations = eval(affiliations)
             affiliations = list(set(affiliations))
             affiliations = [str(a) for a in affiliations]
@@ -258,22 +280,22 @@ def get_code_url(paper: ArxivPaper) -> Optional[str]:
     """
     s = requests.Session()
     retries = Retry(total=5, backoff_factor=0.1)
-    s.mount('https://', HTTPAdapter(max_retries=retries))
+    s.mount("https://", HTTPAdapter(max_retries=retries))
     try:
-        paper_list = s.get(f'https://paperswithcode.com/api/v1/papers/?arxiv_id={paper.arxiv_id}').json()
+        paper_list = s.get(f"https://paperswithcode.com/api/v1/papers/?arxiv_id={paper.arxiv_id}").json()
     except Exception as e:
-        logger.debug(f'Error when searching {paper.arxiv_id}: {e}')
+        logger.debug(f"Error when searching {paper.arxiv_id}: {e}")
         return None
 
-    if paper_list.get('count', 0) == 0:
+    if paper_list.get("count", 0) == 0:
         return None
-    paper_id = paper_list['results'][0]['id']
+    paper_id = paper_list["results"][0]["id"]
 
     try:
-        repo_list = s.get(f'https://paperswithcode.com/api/v1/papers/{paper_id}/repositories/').json()
+        repo_list = s.get(f"https://paperswithcode.com/api/v1/papers/{paper_id}/repositories/").json()
     except Exception as e:
-        logger.debug(f'Error when searching {paper.arxiv_id}: {e}')
+        logger.debug(f"Error when searching {paper.arxiv_id}: {e}")
         return None
-    if repo_list.get('count', 0) == 0:
+    if repo_list.get("count", 0) == 0:
         return None
-    return repo_list['results'][0]['url']
+    return repo_list["results"][0]["url"]

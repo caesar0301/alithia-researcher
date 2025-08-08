@@ -3,7 +3,6 @@ Agent nodes for the research agent workflow.
 """
 
 import logging
-from typing import Any, Dict
 
 from ..utils.arxiv_client import get_arxiv_papers
 from ..utils.email_utils import construct_email_content, send_email
@@ -15,7 +14,7 @@ from .state import AgentState
 logger = logging.getLogger(__name__)
 
 
-def profile_analysis_node(state: AgentState) -> Dict[str, Any]:
+def profile_analysis_node(state: AgentState) -> dict:
     """
     Initialize and analyze user research profile.
 
@@ -23,7 +22,7 @@ def profile_analysis_node(state: AgentState) -> Dict[str, Any]:
         state: Current agent state
 
     Returns:
-        Updated state with profile information
+        Dictionary with updated state fields
     """
     logger.info("Analyzing user profile...")
 
@@ -39,11 +38,10 @@ def profile_analysis_node(state: AgentState) -> Dict[str, Any]:
         return {"current_step": "profile_validation_error"}
 
     logger.info(f"Profile validated for user: {state.profile.zotero_id}")
+    return {"current_step": "profile_analysis_complete"}
 
-    return {"current_step": "profile_analysis_complete", "profile": state.profile}
 
-
-def data_collection_node(state: AgentState) -> Dict[str, Any]:
+def data_collection_node(state: AgentState) -> dict:
     """
     Collect papers from ArXiv and Zotero.
 
@@ -51,7 +49,7 @@ def data_collection_node(state: AgentState) -> Dict[str, Any]:
         state: Current agent state
 
     Returns:
-        Updated state with collected papers and corpus
+        Dictionary with updated state fields
     """
     logger.info("Collecting data from ArXiv and Zotero...")
 
@@ -77,14 +75,14 @@ def data_collection_node(state: AgentState) -> Dict[str, Any]:
         papers = get_arxiv_papers(state.profile.arxiv_query, state.debug_mode)
         logger.info(f"Retrieved {len(papers)} papers from ArXiv")
 
-        return {"current_step": "data_collection_complete", "discovered_papers": papers, "zotero_corpus": corpus}
+        return {"discovered_papers": papers, "zotero_corpus": corpus, "current_step": "data_collection_complete"}
 
     except Exception as e:
         state.add_error(f"Data collection failed: {str(e)}")
         return {"current_step": "data_collection_error"}
 
 
-def relevance_assessment_node(state: AgentState) -> Dict[str, Any]:
+def relevance_assessment_node(state: AgentState) -> dict:
     """
     Score papers based on relevance to user's research.
 
@@ -92,13 +90,13 @@ def relevance_assessment_node(state: AgentState) -> Dict[str, Any]:
         state: Current agent state
 
     Returns:
-        Updated state with scored papers
+        Dictionary with updated state fields
     """
     logger.info("Assessing paper relevance...")
 
     if not state.discovered_papers:
         logger.info("No papers discovered")
-        return {"current_step": "relevance_assessment_complete", "scored_papers": []}
+        return {"current_step": "relevance_assessment_complete"}
 
     if not state.zotero_corpus:
         logger.warning("No Zotero corpus available, using basic scoring")
@@ -127,10 +125,10 @@ def relevance_assessment_node(state: AgentState) -> Dict[str, Any]:
         scored_papers = scored_papers[: state.profile.max_papers]
         logger.info(f"Limited to {len(scored_papers)} papers")
 
-    return {"current_step": "relevance_assessment_complete", "scored_papers": scored_papers}
+    return {"scored_papers": scored_papers, "current_step": "relevance_assessment_complete"}
 
 
-def content_generation_node(state: AgentState) -> Dict[str, Any]:
+def content_generation_node(state: AgentState) -> dict:
     """
     Generate TLDR summaries and email content.
 
@@ -138,13 +136,13 @@ def content_generation_node(state: AgentState) -> Dict[str, Any]:
         state: Current agent state
 
     Returns:
-        Updated state with generated content
+        Dictionary with updated state fields
     """
     logger.info("Generating content...")
 
     if not state.scored_papers:
         logger.info("No papers to process")
-        return {"current_step": "content_generation_complete", "email_content": None}
+        return {"current_step": "content_generation_complete"}
 
     if not state.profile:
         state.add_error("No profile available for content generation")
@@ -173,14 +171,14 @@ def content_generation_node(state: AgentState) -> Dict[str, Any]:
         email_content = construct_email_content(state.scored_papers)
 
         logger.info("Content generation complete")
-        return {"current_step": "content_generation_complete", "email_content": email_content}
+        return {"email_content": email_content, "current_step": "content_generation_complete"}
 
     except Exception as e:
         state.add_error(f"Content generation failed: {str(e)}")
         return {"current_step": "content_generation_error"}
 
 
-def communication_node(state: AgentState) -> Dict[str, Any]:
+def communication_node(state: AgentState) -> dict:
     """
     Send email with recommendations.
 
@@ -188,7 +186,7 @@ def communication_node(state: AgentState) -> Dict[str, Any]:
         state: Current agent state
 
     Returns:
-        Updated state with delivery status
+        Dictionary with updated state fields
     """
     logger.info("Preparing email delivery...")
 
@@ -200,7 +198,7 @@ def communication_node(state: AgentState) -> Dict[str, Any]:
     if not state.email_content or (hasattr(state.email_content, "is_empty") and state.email_content.is_empty()):
         if not state.profile.send_empty:
             logger.info("No papers found and SEND_EMPTY=False, skipping email")
-            return {"current_step": "workflow_complete", "delivery_status": "skipped_empty"}
+            return {"current_step": "workflow_complete"}
         else:
             logger.info("No papers found but SEND_EMPTY=True, sending empty email")
 
@@ -221,7 +219,7 @@ def communication_node(state: AgentState) -> Dict[str, Any]:
 
         if success:
             logger.info("Email sent successfully")
-            return {"current_step": "workflow_complete", "delivery_status": "sent"}
+            return {"current_step": "workflow_complete"}
         else:
             state.add_error("Email delivery failed")
             return {"current_step": "communication_error"}

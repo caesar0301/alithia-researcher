@@ -50,6 +50,7 @@ class ResearchAgent:
         workflow.set_entry_point("profile_analysis")
         workflow.set_finish_point("communication")
 
+        # Compile with state configuration to ensure proper state handling
         return workflow.compile()
 
     def run(self, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -72,15 +73,31 @@ class ResearchAgent:
             # Run workflow
             final_state = self.workflow.invoke(initial_state)
 
-            # Log summary
-            summary = final_state.get_summary()
+            # Handle both AgentState and dict returns from LangGraph
+            if hasattr(final_state, "get_summary"):
+                # It's an AgentState object
+                summary = final_state.get_summary()
+                papers_sent = len(final_state.scored_papers)
+                errors = final_state.error_log
+            else:
+                # It's a dictionary (LangGraph sometimes returns dict)
+                summary = {
+                    "current_step": final_state.get("current_step", "unknown"),
+                    "papers_discovered": len(final_state.get("discovered_papers", [])),
+                    "papers_scored": len(final_state.get("scored_papers", [])),
+                    "errors": len(final_state.get("error_log", [])),
+                    "metrics": final_state.get("performance_metrics", {}),
+                }
+                papers_sent = len(final_state.get("scored_papers", []))
+                errors = final_state.get("error_log", [])
+
             logger.info(f"Workflow completed: {summary}")
 
             return {
                 "success": True,
                 "summary": summary,
-                "papers_sent": len(final_state.scored_papers),
-                "errors": final_state.error_log,
+                "papers_sent": papers_sent,
+                "errors": errors,
             }
 
         except Exception as e:

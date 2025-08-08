@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
 from typing import List
 
-from ..models.paper import ScoredPaper
+from ..models.paper import EmailContent, ScoredPaper
 
 EMAIL_TEMPLATE = """
 <!DOCTYPE HTML>
@@ -164,7 +164,7 @@ def create_empty_email_html() -> str:
     """
 
 
-def construct_email_content(papers: List[ScoredPaper]) -> str:
+def construct_email_content(papers: List[ScoredPaper]) -> EmailContent:
     """
     Construct complete email content from scored papers.
 
@@ -172,15 +172,23 @@ def construct_email_content(papers: List[ScoredPaper]) -> str:
         papers: List of scored papers to include
 
     Returns:
-        Complete HTML email content
+        EmailContent object or string content
     """
+
     if not papers:
         content = create_empty_email_html()
+        return EmailContent(
+            subject="Daily arXiv - No Papers Today", html_content=EMAIL_TEMPLATE.format(content=content), papers=[]
+        )
     else:
         paper_blocks = [create_paper_html(paper) for paper in papers]
         content = "<br>".join(paper_blocks)
 
-    return EMAIL_TEMPLATE.format(content=content)
+        return EmailContent(
+            subject=f"Daily arXiv - {len(papers)} Papers",
+            html_content=EMAIL_TEMPLATE.format(content=content),
+            papers=papers,
+        )
 
 
 def send_email(sender: str, receiver: str, password: str, smtp_server: str, smtp_port: int, html_content: str) -> bool:

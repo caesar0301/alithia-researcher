@@ -3,13 +3,13 @@ Paper data models for the Alithia research agent.
 """
 
 import re
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class ArxivPaper:
+class ArxivPaper(BaseModel):
     """Represents an ArXiv paper with all relevant metadata."""
 
     title: str
@@ -22,6 +22,9 @@ class ArxivPaper:
     tldr: Optional[str] = None
     score: Optional[float] = None
     published_date: Optional[datetime] = None
+    arxiv_result: Optional[Any] = Field(
+        default=None, exclude=True
+    )  # Store original arxiv.Result object for source access
 
     @classmethod
     def from_arxiv_result(cls, paper_result) -> "ArxivPaper":
@@ -35,30 +38,29 @@ class ArxivPaper:
             arxiv_id=arxiv_id,
             pdf_url=paper_result.pdf_url,
             published_date=paper_result.published,
+            arxiv_result=paper_result,  # Store the original result object
         )
 
 
-@dataclass
-class ScoredPaper:
+class ScoredPaper(BaseModel):
     """Represents a paper with relevance score."""
 
     paper: ArxivPaper
     score: float
-    relevance_factors: Dict[str, float] = field(default_factory=dict)
+    relevance_factors: Dict[str, float] = Field(default_factory=dict)
 
-    def __post_init__(self):
-        """Update the paper's score."""
+    def model_post_init(self, __context: Any) -> None:
+        """Update the paper's score after initialization."""
         self.paper.score = self.score
 
 
-@dataclass
-class EmailContent:
+class EmailContent(BaseModel):
     """Represents the content for email delivery."""
 
     subject: str
     html_content: str
     papers: List[ScoredPaper]
-    generated_at: datetime = field(default_factory=datetime.now)
+    generated_at: datetime = Field(default_factory=datetime.now)
 
     def is_empty(self) -> bool:
         """Check if email has no papers."""
