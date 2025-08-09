@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from ..models.paper import ArxivPaper, ScoredPaper
+from .paper import ArxivPaper, ScoredPaper
 
 
 def rerank_papers(

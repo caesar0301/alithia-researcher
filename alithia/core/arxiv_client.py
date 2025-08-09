@@ -7,7 +7,7 @@ from typing import List
 import arxiv
 import feedparser
 
-from ..models.paper import ArxivPaper
+from .paper import ArxivPaper
 
 
 def get_arxiv_papers(arxiv_query: str, debug: bool = False) -> List[ArxivPaper]:
