@@ -9,10 +9,10 @@ from typing import Any, Dict, List, Literal, Optional
 from alithia.core.agent_state import AgentState
 from alithia.core.llm_utils import get_llm
 
-from .pdf_processor import PDFProcessor
-from .embedding import EmbeddingService
-from .vector_store import PineconeVectorStore
-from .table_store import SupabaseTableStore
+from alithia.core.pdf_processor import PDFProcessor
+from alithia.core.embedding import EmbeddingService
+from alithia.core.vector_store import PineconeVectorStore
+from alithia.core.table_store import SupabaseTableStore
 
 logger = logging.getLogger(__name__)
 

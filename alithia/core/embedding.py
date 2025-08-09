@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 
 from sentence_transformers import SentenceTransformer, CrossEncoder
 import numpy as np
