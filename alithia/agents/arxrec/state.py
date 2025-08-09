@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from .paper import ArxivPaper, EmailContent, ScoredPaper
-from .profile import ResearchProfile
+from ...core.paper import ArxivPaper, EmailContent, ScoredPaper
+from ...core.profile import ResearchProfile
 
 
 class AgentState(BaseModel):

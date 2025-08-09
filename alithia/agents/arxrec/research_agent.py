@@ -8,7 +8,7 @@ from typing import Any, Dict
 from langgraph.graph import StateGraph
 
 from alithia.core.profile import ResearchProfile
-from alithia.core.state import AgentState
+from alithia.agents.arxrec.state import AgentState
 
 from .nodes import (
     communication_node,
