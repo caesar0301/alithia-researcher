@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 from email.utils import formataddr, parseaddr
 from typing import List
 
-from ..models.paper import EmailContent, ScoredPaper
+from .paper import EmailContent, ScoredPaper
 
 EMAIL_TEMPLATE = """
 <!DOCTYPE HTML>

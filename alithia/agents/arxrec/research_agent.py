@@ -7,7 +7,9 @@ from typing import Any, Dict
 
 from langgraph.graph import StateGraph
 
-from ..models.profile import ResearchProfile
+from alithia.core.profile import ResearchProfile
+from alithia.core.state import AgentState
+
 from .nodes import (
     communication_node,
     content_generation_node,
@@ -15,7 +17,6 @@ from .nodes import (
     profile_analysis_node,
     relevance_assessment_node,
 )
-from .state import AgentState
 
 logger = logging.getLogger(__name__)
 

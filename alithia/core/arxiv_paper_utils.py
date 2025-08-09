@@ -1,9 +1,8 @@
 """
-LLM utilities for content generation using cogents.common.llm.
+Utilities for processing and enriching ArxivPaper objects.
 """
 
 import logging
-import os
 import re
 import tarfile
 from contextlib import ExitStack
@@ -13,42 +12,11 @@ from urllib.error import HTTPError
 
 import requests
 import tiktoken
-from cogents.common.llm import get_llm_client
 from requests.adapters import HTTPAdapter, Retry
 
-from ..models.paper import ArxivPaper
-from ..models.profile import ResearchProfile
+from .paper import ArxivPaper
 
 logger = logging.getLogger(__name__)
-
-
-def get_llm(profile: ResearchProfile):
-    """
-    Get LLM instance based on profile configuration.
-
-    Args:
-        profile: ResearchProfile instance
-
-    Returns:
-        LLM client instance
-    """
-    # Configure API settings
-    if profile.use_llm_api and profile.openai_api_key:
-        os.environ["OPENAI_API_KEY"] = profile.openai_api_key
-        if profile.openai_api_base:
-            os.environ["OPENAI_BASE_URL"] = profile.openai_api_base
-
-    try:
-        llm = get_llm_client(provider="openai")
-
-        # Set model if specified
-        if profile.model_name:
-            llm.chat_model = profile.model_name
-
-        return llm
-    except Exception as e:
-        logger.warning(f"Failed to initialize LLM client: {e}")
-        raise e
 
 
 def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
