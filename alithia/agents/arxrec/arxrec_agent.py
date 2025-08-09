@@ -7,8 +7,8 @@ from typing import Any, Dict
 
 from langgraph.graph import StateGraph
 
+from alithia.core.agent_state import AgentState
 from alithia.core.profile import ResearchProfile
-from alithia.core.state import AgentState
 
 from .nodes import (
     communication_node,
@@ -21,7 +21,7 @@ from .nodes import (
 logger = logging.getLogger(__name__)
 
 
-class ResearchAgent:
+class ArxrecAgent:
     """
     LangGraph-based research agent that replicates zotero-arxiv-daily functionality.
     """
@@ -147,7 +147,7 @@ class ResearchAgent:
         """
         return {
             "name": "Alithia Research Agent",
-            "description": "LangGraph-based agent for daily ArXiv paper recommendations",
+            "description": "A personalized arXiv recommendation agent.",
             "nodes": [
                 "profile_analysis",
                 "data_collection",

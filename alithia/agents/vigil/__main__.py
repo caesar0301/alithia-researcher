@@ -37,8 +37,8 @@ def monitor_topics(
     if result["success"]:
         typer.secho("✅ AlithiaVigil run completed successfully.", fg=typer.colors.GREEN)
         summary = result.get("summary", {})
-        final_step = summary.get('current_step', 'unknown')
-        papers_found = len(summary.get('discovered_papers', []))
+        final_step = summary.get("current_step", "unknown")
+        papers_found = len(summary.get("discovered_papers", []))
         typer.echo(f"Final step: {final_step}")
         typer.echo(f"Items discovered: {papers_found}")
     else:

@@ -4,17 +4,17 @@ Agent nodes for the research agent workflow.
 
 import logging
 
+from alithia.agents.arxrec.recommender import rerank_papers
+from alithia.core.agent_state import AgentState
 from alithia.core.arxiv_client import get_arxiv_papers
-from alithia.core.email_utils import construct_email_content, send_email
 from alithia.core.arxiv_paper_utils import (
     extract_affiliations,
     generate_tldr,
     get_code_url,
 )
+from alithia.core.email_utils import construct_email_content, send_email
 from alithia.core.llm_utils import get_llm
 from alithia.core.paper import ScoredPaper
-from alithia.core.recommender import rerank_papers
-from alithia.core.state import AgentState
 from alithia.core.zotero_client import filter_corpus, get_zotero_corpus
 
 logger = logging.getLogger(__name__)
@@ -214,11 +214,11 @@ def communication_node(state: AgentState) -> dict:
             password=state.profile.sender_password,
             smtp_server=state.profile.smtp_server,
             smtp_port=state.profile.smtp_port,
-            html_content=state.email_content
-            if isinstance(state.email_content, str)
-            else state.email_content.html_content
-            if state.email_content
-            else "",
+            html_content=(
+                state.email_content
+                if isinstance(state.email_content, str)
+                else state.email_content.html_content if state.email_content else ""
+            ),
         )
 
         if success:

@@ -4,7 +4,6 @@ LLM utilities for content generation using cogents.common.llm.
 
 import logging
 import os
-from typing import Optional
 
 from cogents.common.llm import get_llm_client
 

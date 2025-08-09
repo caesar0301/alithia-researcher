@@ -4,7 +4,7 @@ Placeholder nodes for the AlithiaVigil agent workflow.
 
 import logging
 
-from alithia.core.state import AgentState
+from alithia.core.agent_state import AgentState
 
 logger = logging.getLogger(__name__)
 

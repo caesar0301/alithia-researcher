@@ -10,7 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from alithia.agents.arxrec.research_agent import ResearchAgent
+from alithia.agents.arxrec.arxrec_agent import ArxrecAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -41,7 +41,7 @@ def get_env(key: str, default=None):
 def create_argument_parser() -> argparse.ArgumentParser:
     """Create argument parser with all necessary arguments."""
     parser = argparse.ArgumentParser(
-        description="Alithia Research Agent - Daily ArXiv paper recommendations",
+        description="A personalized arXiv recommendation agent.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -224,7 +224,7 @@ def main():
         sys.exit(1)
 
     # Create and run agent
-    agent = ResearchAgent()
+    agent = ArxrecAgent()
 
     try:
         logger.info("Starting Alithia research agent...")

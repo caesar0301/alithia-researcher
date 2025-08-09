@@ -17,9 +17,7 @@ app = typer.Typer(help="AlithiaLens - Deep Paper Interaction Agent")
 
 @app.command(name="interact", help="Start an interactive session with a research paper.")
 def interact_with_paper(
-    paper_id: str = typer.Argument(
-        ..., help="The ArXiv ID, DOI, or PDF path of the paper to analyze."
-    ),
+    paper_id: str = typer.Argument(..., help="The ArXiv ID, DOI, or PDF path of the paper to analyze."),
     debug: bool = typer.Option(False, "--debug", help="Enable debug mode for more verbose output."),
 ):
     """

@@ -7,7 +7,8 @@ from typing import Any, Dict
 
 from langgraph.graph import StateGraph
 
-from alithia.core.state import AgentState
+from alithia.core.agent_state import AgentState
+
 from .nodes import filter_results_node, scan_sources_node, send_alert_node
 
 logger = logging.getLogger(__name__)

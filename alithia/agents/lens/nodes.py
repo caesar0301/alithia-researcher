@@ -5,7 +5,7 @@ Placeholder nodes for the AlithiaLens agent workflow.
 import logging
 from typing import Literal
 
-from alithia.core.state import AgentState
+from alithia.core.agent_state import AgentState
 
 logger = logging.getLogger(__name__)
 
