@@ -13,8 +13,8 @@ from alithia.core.arxiv_paper_utils import (
 )
 from alithia.core.llm_utils import get_llm
 from alithia.core.paper import ScoredPaper
-from alithia.agents.arxrec.recommender import rerank_papers
-from alithia.agents.arxrec.state import AgentState
+from alithia.core.recommender import rerank_papers
+from alithia.core.state import AgentState
 from alithia.core.zotero_client import filter_corpus, get_zotero_corpus
 
 logger = logging.getLogger(__name__)
