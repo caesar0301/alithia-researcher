@@ -10,7 +10,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from .agents.research_agent import ResearchAgent
+from alithia.agents.arxrec.research_agent import ResearchAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

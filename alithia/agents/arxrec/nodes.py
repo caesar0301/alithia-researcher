@@ -4,12 +4,18 @@ Agent nodes for the research agent workflow.
 
 import logging
 
-from ..utils.arxiv_client import get_arxiv_papers
-from ..utils.email_utils import construct_email_content, send_email
-from ..utils.llm_utils import extract_affiliations, generate_tldr, get_code_url, get_llm
-from ..utils.recommender import rerank_papers
-from ..utils.zotero_client import filter_corpus, get_zotero_corpus
-from .state import AgentState
+from alithia.core.arxiv_client import get_arxiv_papers
+from alithia.core.email_utils import construct_email_content, send_email
+from alithia.core.llm_utils import (
+    extract_affiliations,
+    generate_tldr,
+    get_code_url,
+    get_llm,
+)
+from alithia.core.paper import ScoredPaper
+from alithia.core.recommender import rerank_papers
+from alithia.core.state import AgentState
+from alithia.core.zotero_client import filter_corpus, get_zotero_corpus
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +106,6 @@ def relevance_assessment_node(state: AgentState) -> dict:
 
     if not state.zotero_corpus:
         logger.warning("No Zotero corpus available, using basic scoring")
-        from ..models.paper import ScoredPaper
 
         scored_papers = [
             ScoredPaper(paper=paper, score=5.0, relevance_factors={"basic": 5.0}) for paper in state.discovered_papers
@@ -113,7 +118,6 @@ def relevance_assessment_node(state: AgentState) -> dict:
         except Exception as e:
             state.add_error(f"Relevance assessment failed: {str(e)}")
             # Fallback to basic scoring
-            from ..models.paper import ScoredPaper
 
             scored_papers = [
                 ScoredPaper(paper=paper, score=5.0, relevance_factors={"fallback": 5.0})

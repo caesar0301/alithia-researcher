@@ -16,8 +16,8 @@ import tiktoken
 from cogents.common.llm import get_llm_client
 from requests.adapters import HTTPAdapter, Retry
 
-from ..models.paper import ArxivPaper
-from ..models.profile import ResearchProfile
+from .paper import ArxivPaper
+from .profile import ResearchProfile
 
 logger = logging.getLogger(__name__)
 
