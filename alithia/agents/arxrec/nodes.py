@@ -6,12 +6,12 @@ import logging
 
 from alithia.core.arxiv_client import get_arxiv_papers
 from alithia.core.email_utils import construct_email_content, send_email
-from alithia.core.llm_utils import (
+from alithia.core.arxiv_paper_utils import (
     extract_affiliations,
     generate_tldr,
     get_code_url,
-    get_llm,
 )
+from alithia.core.llm_utils import get_llm
 from alithia.core.paper import ScoredPaper
 from alithia.core.recommender import rerank_papers
 from alithia.core.state import AgentState
