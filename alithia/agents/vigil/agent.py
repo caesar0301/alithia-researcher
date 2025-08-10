@@ -55,12 +55,12 @@ class VigilAgent:
         """
         logger.info("Starting AlithiaVigil workflow...")
         initial_state = AgentState(profile=None, debug_mode=config.get("debug", False))
-        # In a real implementation, a Vigil-specific profile/config would be used.
-        # For now, we pass a minimal state.
+        # Attach topics into state for nodes
+        initial_state_dict = initial_state.model_dump()
+        initial_state_dict["topics"] = config.get("topics", [])
 
         try:
-            final_state = self.workflow.invoke(initial_state, config={"recursion_limit": 5})
-            logger.info(f"Workflow completed. Final state: {final_state.get('current_step')}")
+            final_state = self.workflow.invoke(initial_state_dict, config={"recursion_limit": 5})
             return {"success": True, "summary": final_state}
         except Exception as e:
             logger.error(f"AlithiaVigil workflow failed: {e}", exc_info=True)
