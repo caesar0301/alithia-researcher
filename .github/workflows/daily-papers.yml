@@ -1,0 +1,54 @@
+name: Daily Papers - ArXiv Research Agent
+
+on:
+  schedule:
+    # Run daily at 23:00 UTC
+    - cron: '0 23 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  run-arxrec-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
+
+    - name: Run ArXiv Research Agent
+      env:
+        ARXREC_AGENT_CONFIG: ${{ secrets.ARXREC_AGENT_CONFIG }}
+      run: |
+        # Parse the JSON config from environment variable
+        echo "$ARXREC_AGENT_CONFIG" > arxrec_config.json
+        poetry run python -m alithia.agents.arxrec --config arxrec_config.json
+
+    - name: Upload logs on failure
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: arxrec-logs-${{ github.run_id }}
+        path: |
+          *.log
+          arxrec_config.json
+        retention-days: 7

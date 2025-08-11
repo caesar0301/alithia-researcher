@@ -1,0 +1,64 @@
+name: Daily Papers Test - ArXiv Research Agent (Debug)
+
+on:
+  workflow_dispatch:  # Manual trigger only for testing
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-arxrec-agent:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Load cached dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: poetry install --no-interaction --no-root
+
+    - name: Run ArXiv Research Agent (Debug Mode)
+      env:
+        ARXREC_AGENT_CONFIG: ${{ secrets.ARXREC_AGENT_CONFIG }}
+      run: |
+        # Parse the JSON config from environment variable
+        echo "$ARXREC_AGENT_CONFIG" > arxrec_config_test.json
+
+        # Modify config to enable debug mode
+        poetry run python -c "
+        import json
+        with open('arxrec_config_test.json', 'r') as f:
+            config = json.load(f)
+        config['debug'] = True
+        config['max_paper_num'] = 3  # Limit papers for testing
+        with open('arxrec_config_test.json', 'w') as f:
+            json.dump(config, f, indent=2)
+        "
+
+        poetry run python -m alithia.agents.arxrec --config arxrec_config_test.json
+
+    - name: Upload test logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: arxrec-test-logs-${{ github.run_id }}
+        path: |
+          *.log
+          arxrec_config_test.json
+        retention-days: 7

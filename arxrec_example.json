@@ -4,7 +4,7 @@
   "language": "English",
   "max_paper_num": 10,
   "send_empty": false,
-  "zotero_ignore": "conference\nworkshop\nposter",
+  "zotero_ignore": "",
   "smtp_server": "smtp.gmail.com",
   "smtp_port": 587,
   "sender": "your_email@gmail.com",
