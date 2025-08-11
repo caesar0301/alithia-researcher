@@ -5,10 +5,39 @@ These tests use mocks to avoid real API calls and external dependencies.
 """
 
 from unittest.mock import Mock, patch
+from typing import List
 
+import types
 import pytest
 
-from alithia.core.arxiv_client import get_arxiv_papers
+from alithia.core.arxiv_client import FindArxivPapersTool, get_arxiv_papers
+from alithia.core.paper import ArxivPaper
+
+
+class DummyArxivResult:
+    def __init__(self, title, summary, authors, pdf_url):
+        self.title = title
+        self.summary = summary
+        self.authors = [types.SimpleNamespace(name=a) for a in authors]
+        self.pdf_url = pdf_url
+        self.published = None
+
+    def get_short_id(self):
+        return "1234.56789"
+
+
+class DummyClient:
+    def __init__(self, results):
+        self._results = results
+
+    def results(self, search):
+        return iter(self._results)
+
+
+class DummyFeed:
+    def __init__(self, ids: List[str]):
+        self.feed = types.SimpleNamespace(title="ok")
+        self.entries = [types.SimpleNamespace(id=f"oai:arXiv.org:{pid}", arxiv_announce_type="new") for pid in ids]
 
 
 class TestArxivClientUnit:
@@ -120,3 +149,18 @@ class TestArxivClientUnit:
             assert len(papers) == 1
             assert papers[0].title == "Test Paper"
             assert papers[0].arxiv_id == "1234.5678"
+
+
+def test_find_arxiv_papers_tool_uses_wrapper(monkeypatch):
+    import alithia.core.arxiv_client as ac
+    import feedparser as fp
+
+    # Monkeypatch feedparser and arxiv client behavior
+    monkeypatch.setattr(fp, "parse", lambda url: DummyFeed(["0000.00001"]))
+    result = DummyArxivResult("T", "S", ["A"], "http://x/y.pdf")
+    monkeypatch.setattr(ac.arxiv, "Client", lambda num_retries=10, delay_seconds=10: DummyClient([result]))
+    monkeypatch.setattr(ac.arxiv, "Search", lambda **kwargs: types.SimpleNamespace())
+
+    tool = FindArxivPapersTool()
+    out = tool({"arxiv_query": "cs.AI", "debug": False})
+    assert out.papers and isinstance(out.papers[0], ArxivPaper)

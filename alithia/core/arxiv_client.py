@@ -9,6 +9,32 @@ import feedparser
 
 from .paper import ArxivPaper
 
+# Tool interface wrappers
+from alithia.core.tools.base import Tool, ToolInput, ToolOutput
+
+
+class FindArxivPapersInput(ToolInput):
+    arxiv_query: str
+    debug: bool = False
+
+
+class FindArxivPapersOutput(ToolOutput):
+    papers: List[ArxivPaper]
+
+
+class FindArxivPapersTool(Tool):
+    InputModel = FindArxivPapersInput
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="core.find_arxiv_papers",
+            description="Fetch papers from ArXiv using RSS and API; mirrors get_arxiv_papers",
+        )
+
+    def execute(self, inputs: FindArxivPapersInput, **kwargs) -> FindArxivPapersOutput:
+        papers = get_arxiv_papers(inputs.arxiv_query, inputs.debug)
+        return FindArxivPapersOutput(papers=papers)
+
 
 def get_arxiv_papers(arxiv_query: str, debug: bool = False) -> List[ArxivPaper]:
     """

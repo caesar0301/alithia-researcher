@@ -6,8 +6,15 @@ import logging
 
 from alithia.agents.arxrec.recommender import rerank_papers
 from alithia.core.agent_state import AgentState
-from alithia.core.arxiv_client import get_arxiv_papers
-from alithia.core.arxiv_paper_utils import extract_affiliations, generate_tldr, get_code_url
+from alithia.core.arxiv_client import FindArxivPapersTool, get_arxiv_papers
+from alithia.core.arxiv_paper_utils import (
+    ExtractAffiliationsTool,
+    GenerateTLDRTool,
+    GetCodeURLTool,
+    extract_affiliations,
+    generate_tldr,
+    get_code_url,
+)
 from alithia.core.email_utils import construct_email_content, send_email
 from alithia.core.llm_utils import get_llm
 from alithia.core.paper import ScoredPaper
@@ -72,9 +79,14 @@ def data_collection_node(state: AgentState) -> dict:
             corpus = filter_corpus(corpus, ignore_patterns)
             logger.info(f"Filtered corpus: {len(corpus)} papers remaining")
 
-        # Get ArXiv papers
+        # Get ArXiv papers (via Tool wrapper to conform to tool interface)
         logger.info("Retrieving ArXiv papers...")
-        papers = get_arxiv_papers(state.profile.arxiv_query, state.debug_mode)
+        try:
+            arxiv_tool = FindArxivPapersTool()
+            papers = arxiv_tool({"arxiv_query": state.profile.arxiv_query, "debug": state.debug_mode}).papers
+        except Exception:
+            # Fallback to original function to keep functionality unchanged
+            papers = get_arxiv_papers(state.profile.arxiv_query, state.debug_mode)
         logger.info(f"Retrieved {len(papers)} papers from ArXiv")
 
         return {"discovered_papers": papers, "zotero_corpus": corpus, "current_step": "data_collection_complete"}
@@ -151,22 +163,34 @@ def content_generation_node(state: AgentState) -> dict:
     try:
         llm = get_llm(state.profile)
 
-        # Generate TLDR and enrich paper data
+        # Generate TLDR and enrich paper data (using tools where available)
         for i, scored_paper in enumerate(state.scored_papers):
             paper = scored_paper.paper
             logger.info(f"Processing paper {i+1}/{len(state.scored_papers)}: {paper.title[:50]}...")
 
             # Generate TLDR
             if not paper.tldr:
-                paper.tldr = generate_tldr(paper, llm)
+                try:
+                    tldr_tool = GenerateTLDRTool()
+                    paper.tldr = tldr_tool({"paper": paper, "llm": llm}).tldr
+                except Exception:
+                    paper.tldr = generate_tldr(paper, llm)
 
             # Extract affiliations
             if not paper.affiliations:
-                paper.affiliations = extract_affiliations(paper, llm)
+                try:
+                    aff_tool = ExtractAffiliationsTool()
+                    paper.affiliations = aff_tool({"paper": paper, "llm": llm}).affiliations
+                except Exception:
+                    paper.affiliations = extract_affiliations(paper, llm)
 
             # Get code URL
             if not paper.code_url:
-                paper.code_url = get_code_url(paper)
+                try:
+                    code_tool = GetCodeURLTool()
+                    paper.code_url = code_tool({"paper": paper}).url
+                except Exception:
+                    paper.code_url = get_code_url(paper)
 
         # Construct email content
         email_content = construct_email_content(state.scored_papers)

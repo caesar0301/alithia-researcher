@@ -17,7 +17,72 @@ from requests.adapters import HTTPAdapter, Retry
 
 from .paper import ArxivPaper
 
+# Tool interface wrappers
+from alithia.core.tools.base import Tool, ToolInput, ToolOutput
+
 logger = logging.getLogger(__name__)
+
+
+class GenerateTLDRInput(ToolInput):
+    paper: ArxivPaper
+    llm: BaseLLMClient
+
+
+class GenerateTLDROutput(ToolOutput):
+    tldr: str
+
+
+class GenerateTLDRTool(Tool):
+    InputModel = GenerateTLDRInput
+
+    def __init__(self) -> None:
+        super().__init__(name="core.generate_tldr", description="Generate TLDR using cogents LLM; wraps generate_tldr")
+
+    def execute(self, inputs: GenerateTLDRInput, **kwargs) -> GenerateTLDROutput:
+        t = generate_tldr(inputs.paper, inputs.llm)
+        return GenerateTLDROutput(tldr=t)
+
+
+class ExtractAffiliationsInput(ToolInput):
+    paper: ArxivPaper
+    llm: BaseLLMClient
+
+
+class ExtractAffiliationsOutput(ToolOutput):
+    affiliations: Optional[List[str]]
+
+
+class ExtractAffiliationsTool(Tool):
+    InputModel = ExtractAffiliationsInput
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="core.extract_affiliations",
+            description="Extract affiliations using LLM; wraps extract_affiliations",
+        )
+
+    def execute(self, inputs: ExtractAffiliationsInput, **kwargs) -> ExtractAffiliationsOutput:
+        aff = extract_affiliations(inputs.paper, inputs.llm)
+        return ExtractAffiliationsOutput(affiliations=aff)
+
+
+class GetCodeURLInput(ToolInput):
+    paper: ArxivPaper
+
+
+class GetCodeURLOutput(ToolOutput):
+    url: Optional[str]
+
+
+class GetCodeURLTool(Tool):
+    InputModel = GetCodeURLInput
+
+    def __init__(self) -> None:
+        super().__init__(name="core.get_code_url", description="Find code URL; wraps get_code_url")
+
+    def execute(self, inputs: GetCodeURLInput, **kwargs) -> GetCodeURLOutput:
+        url = get_code_url(inputs.paper)
+        return GetCodeURLOutput(url=url)
 
 
 def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
