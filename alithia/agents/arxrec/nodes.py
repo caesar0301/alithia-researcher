@@ -152,8 +152,9 @@ def content_generation_node(state: AgentState) -> dict:
         llm = get_llm(state.profile)
 
         # Generate TLDR and enrich paper data
-        for scored_paper in state.scored_papers:
+        for i, scored_paper in enumerate(state.scored_papers):
             paper = scored_paper.paper
+            logger.info(f"Processing paper {i+1}/{len(state.scored_papers)}: {paper.title[:50]}...")
 
             # Generate TLDR
             if not paper.tldr:
@@ -188,7 +189,6 @@ def communication_node(state: AgentState) -> dict:
     Returns:
         Dictionary with updated state fields
     """
-    logger.info(f"state.debug_mode: {state.debug_mode}")
     if state.debug_mode:
         logger.info("Skipping email delivery in debug mode")
         return {"current_step": "workflow_complete"}

@@ -27,7 +27,6 @@ class ResearchProfile(BaseModel):
     receiver_email: Optional[str] = None
 
     # LLM Configuration
-    use_llm_api: bool = False
     openai_api_key: Optional[str] = None
     openai_api_base: str = "https://api.openai.com/v1"
     model_name: str = "gpt-4o"
@@ -46,13 +45,12 @@ class ResearchProfile(BaseModel):
             language=config.get("language", "English"),
             max_papers=config.get("max_paper_num", 50),
             send_empty=config.get("send_empty", False),
-            ignore_patterns=config.get("zotero_ignore", "").splitlines(),
+            ignore_patterns=config.get("zotero_ignore", "").splitlines() if config.get("zotero_ignore") else [],
             smtp_server=config.get("smtp_server"),
             smtp_port=config.get("smtp_port"),
             sender_email=config.get("sender"),
             sender_password=config.get("sender_password"),
             receiver_email=config.get("receiver"),
-            use_llm_api=config.get("use_llm_api", False),
             openai_api_key=config.get("openai_api_key"),
             openai_api_base=config.get("openai_api_base", "https://api.openai.com/v1"),
             model_name=config.get("model_name", "gpt-4o"),
@@ -73,7 +71,5 @@ class ResearchProfile(BaseModel):
             errors.append("Sender email is required")
         if not self.receiver_email:
             errors.append("Receiver email is required")
-        if self.use_llm_api and not self.openai_api_key:
-            errors.append("OpenAI API key is required when using LLM API")
 
         return errors

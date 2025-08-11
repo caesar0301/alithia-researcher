@@ -19,7 +19,6 @@ def test_profile_from_config_defaults_and_values():
         "sender": "sender@example.com",
         "sender_password": "pass",
         "receiver": "recv@example.com",
-        "use_llm_api": True,
         "openai_api_key": "ok",
         "openai_api_base": "http://base",
         "model_name": "gpt-x",
@@ -50,6 +49,6 @@ def test_profile_validate_missing_fields():
 
 @pytest.mark.unit
 def test_profile_validate_llm_requires_key():
-    p = ResearchProfile(zotero_id="a", zotero_key="b", use_llm_api=True)
+    p = ResearchProfile(zotero_id="a", zotero_key="b")
     errs = p.validate()
     assert "OpenAI API key is required when using LLM API" in errs

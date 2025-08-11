@@ -17,22 +17,22 @@ EMAIL_TEMPLATE = """
 <html>
 <head>
   <style>
-    .star-wrapper {
+    .star-wrapper {{
       font-size: 1.3em;
       line-height: 1;
       display: inline-flex;
       align-items: center;
-    }
-    .half-star {
+    }}
+    .half-star {{
       display: inline-block;
       width: 0.5em;
       overflow: hidden;
       white-space: nowrap;
       vertical-align: middle;
-    }
-    .full-star {
+    }}
+    .full-star {{
       vertical-align: middle;
-    }
+    }}
   </style>
 </head>
 <body>

@@ -128,7 +128,6 @@ class ArxrecAgent:
             "sender": profile.sender_email,
             "receiver": profile.receiver_email,
             "sender_password": profile.sender_password,
-            "use_llm_api": profile.use_llm_api,
             "openai_api_key": profile.openai_api_key,
             "openai_api_base": profile.openai_api_base,
             "model_name": profile.model_name,

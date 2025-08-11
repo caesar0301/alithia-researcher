@@ -46,37 +46,14 @@ def create_argument_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples:
   # Run with environment variables
-  python -m alithia.main
-  
-  # Run with command line arguments
-  python -m alithia.main --zotero-id 12345678 --zotero-key abc123 --debug
+  python -m alithia.agents.arxrec
   
   # Run with configuration file
-  python -m alithia.main --config config.json
+  python -m alithia.agents.arxrec --config config.json
         """,
     )
-
-    # Required arguments
-    parser.add_argument("--zotero-id", type=str, help="Zotero user ID")
-    parser.add_argument("--zotero-key", type=str, help="Zotero API key")
-    parser.add_argument("--smtp-server", type=str, help="SMTP server")
-    parser.add_argument("--smtp-port", type=int, help="SMTP port")
-    parser.add_argument("--sender", type=str, help="Sender email address")
-    parser.add_argument("--receiver", type=str, help="Receiver email address")
-    parser.add_argument("--sender-password", type=str, help="Sender email password")
-
     # Optional arguments
-    parser.add_argument("--zotero-ignore", type=str, help="Zotero collections to ignore (gitignore-style patterns)")
-    parser.add_argument("--send-empty", action="store_true", help="Send email even if no papers found")
-    parser.add_argument("--max-paper-num", type=int, default=50, help="Maximum number of papers to recommend")
-    parser.add_argument("--arxiv-query", type=str, default="cs.AI+cs.CV+cs.LG+cs.CL", help="ArXiv search query")
-    parser.add_argument("--use-llm-api", action="store_true", help="Use OpenAI API for TLDR generation")
-    parser.add_argument("--openai-api-key", type=str, help="OpenAI API key")
-    parser.add_argument("--openai-api-base", type=str, default="https://api.openai.com/v1", help="OpenAI API base URL")
-    parser.add_argument("--model-name", type=str, default="gpt-4o", help="LLM model name")
-    parser.add_argument("--language", type=str, default="English", help="Language for TLDR summaries")
-    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--config", type=str, help="Configuration file path (JSON)")
+    parser.add_argument("-c", "--config", type=str, help="Configuration file path (JSON)")
 
     return parser
 
@@ -101,48 +78,14 @@ def load_config_from_file(config_path: str) -> dict:
         sys.exit(1)
 
 
-def build_config_from_args(args) -> dict:
+def build_config_from_envs() -> dict:
     """
-    Build configuration dictionary from arguments.
-
-    Args:
-        args: Parsed arguments
+    Build configuration dictionary from environment variables.
 
     Returns:
         Configuration dictionary
     """
     config = {}
-
-    # Map argument names to config keys
-    arg_mapping = {
-        "zotero_id": "ZOTERO_ID",
-        "zotero_key": "ZOTERO_KEY",
-        "smtp_server": "SMTP_SERVER",
-        "smtp_port": "SMTP_PORT",
-        "sender": "SENDER",
-        "receiver": "RECEIVER",
-        "sender_password": "SENDER_PASSWORD",
-        "zotero_ignore": "ZOTERO_IGNORE",
-        "send_empty": "SEND_EMPTY",
-        "max_paper_num": "MAX_PAPER_NUM",
-        "arxiv_query": "ARXIV_QUERY",
-        "use_llm_api": "USE_LLM_API",
-        "openai_api_key": "OPENAI_API_KEY",
-        "openai_api_base": "OPENAI_API_BASE",
-        "model_name": "MODEL_NAME",
-        "language": "LANGUAGE",
-        "debug": "DEBUG",
-    }
-
-    # Add command line arguments
-    for arg_name, config_key in arg_mapping.items():
-        value = getattr(args, arg_name.replace("-", "_"))
-        if value is not None:
-            # Handle boolean flags properly
-            if arg_name in ["send_empty", "use_llm_api", "debug"]:
-                config[config_key.lower()] = bool(value)
-            else:
-                config[config_key.lower()] = value
 
     # Add environment variables (lower priority than command line)
     env_mapping = {
@@ -157,7 +100,6 @@ def build_config_from_args(args) -> dict:
         "send_empty": "SEND_EMPTY",
         "max_paper_num": "MAX_PAPER_NUM",
         "arxiv_query": "ARXIV_QUERY",
-        "use_llm_api": "USE_LLM_API",
         "openai_api_key": "OPENAI_API_KEY",
         "openai_api_base": "OPENAI_API_BASE",
         "model_name": "MODEL_NAME",
@@ -175,7 +117,7 @@ def build_config_from_args(args) -> dict:
                         value = int(value)
                     except ValueError:
                         continue
-                elif config_key in ["send_empty", "use_llm_api", "debug"]:
+                elif config_key in ["send_empty", "debug"]:
                     value = str(value).lower() in ["true", "1", "yes"]
                 config[config_key] = value
 
@@ -192,17 +134,21 @@ def validate_config(config: dict) -> bool:
     Returns:
         True if valid, False otherwise
     """
-    required_fields = ["zotero_id", "zotero_key", "smtp_server", "smtp_port", "sender", "receiver", "sender_password"]
+    required_fields = [
+        "zotero_id",
+        "zotero_key",
+        "smtp_server",
+        "smtp_port",
+        "sender",
+        "receiver",
+        "sender_password",
+        "openai_api_key",
+    ]
 
     missing = [field for field in required_fields if field not in config or not config[field]]
 
     if missing:
         logger.error(f"Missing required configuration: {', '.join(missing)}")
-        return False
-
-    # Validate LLM API requirements
-    if config.get("use_llm_api", False) and not config.get("openai_api_key"):
-        logger.error("OpenAI API key required when USE_LLM_API=True")
         return False
 
     return True
@@ -213,16 +159,15 @@ def main():
     parser = create_argument_parser()
     args = parser.parse_args()
 
-    # Configure logging based on debug mode
-    if args.debug or get_env("DEBUG", "").lower() in ["true", "1", "yes"]:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logger.debug("Debug mode enabled")
-
     # Build configuration
     if args.config:
         config = load_config_from_file(args.config)
     else:
-        config = build_config_from_args(args)
+        config = build_config_from_envs()
+
+    if config.get("debug", False):
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug(f"Final configuration: {config}")
 
     # Validate configuration
     if not validate_config(config):

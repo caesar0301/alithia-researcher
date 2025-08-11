@@ -12,7 +12,6 @@ def test_get_llm_sets_env_and_model():
     profile = ResearchProfile(
         zotero_id="z",
         zotero_key="k",
-        use_llm_api=True,
         openai_api_key="secret",
         openai_api_base="http://base",
         model_name="gpt-x",
