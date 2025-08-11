@@ -1,16 +1,16 @@
 [tool.poetry]
-name = "alithia-researcher"
+name = "alithia"
 version = "0.1.0"
-description = "LangGraph-based research agent for daily ArXiv paper recommendations"
+description = "Your ultimate research companion"
 authors = ["xmingc <chenxm35@gmail.com>"]
 maintainers = ["xmingc <chenxm35@gmail.com>"]
 readme = "README.md"
-license = "MIT"
-keywords = ["research", "arxiv", "zotero", "agent", "langgraph"]
+license = "AGPL-3.0"
+keywords = ["research", "agent", "paper"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",

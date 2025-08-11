@@ -1,8 +1,8 @@
 # Configuration file for the Sphinx documentation builder.
 
 project = 'alithia-researcher'
-copyright = '2024, Mirasurf Team'
-author = 'Mirasurf Team'
+copyright = '2025, Xiaming Chen'
+author = 'Xiaming Chen'
 release = '0.1.0'
 
 extensions = [
