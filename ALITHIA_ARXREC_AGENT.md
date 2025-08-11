@@ -7,7 +7,7 @@
 3. Add a new repository secret named `ARXREC_AGENT_CONFIG`
 4. Set the value to your JSON configuration (see Configuration section below)
 
-**Schedule**: Runs daily at 23:00 UTC
+**Schedule**: Runs daily at 01:00 UTC
 
 ## Configuration
 
