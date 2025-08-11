@@ -55,7 +55,7 @@ jobs:
         poetry run python -m alithia.agents.arxrec --config arxrec_config_test.json
 
     - name: Upload test logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: arxrec-test-logs-${{ github.run_id }}
         path: |
