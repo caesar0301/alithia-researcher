@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 import arxiv
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
-from langchain_core.tools import BaseTool
 from .base import ToolInput, ToolOutput
 
 

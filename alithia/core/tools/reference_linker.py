@@ -4,12 +4,12 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+from langchain_core.tools import BaseTool
 
 from alithia.core.embedding import EmbeddingService, cosine_similarity_matrix
 
-from langchain_core.tools import BaseTool
 from .base import ToolInput, ToolOutput
-from .models import BibliographyEntry, ParagraphElement, Section, StructuredPaper
+from .models import BibliographyEntry, ParagraphElement, StructuredPaper
 
 
 class ReferenceLinkerInput(ToolInput):
@@ -25,7 +25,7 @@ class ReferenceLinkerOutput(ToolOutput):
 class ReferenceLinkerTool(BaseTool):
     name: str = "core.reference_linker"
     description: str = "Resolve citations relevant to a query from a parsed paper"
-    args_schema = ReferenceLinkerInput
+    args_schema: type[ReferenceLinkerInput] = ReferenceLinkerInput
 
     embedding_service: Optional[EmbeddingService] = None
 

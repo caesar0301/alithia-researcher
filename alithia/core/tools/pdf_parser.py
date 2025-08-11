@@ -4,11 +4,11 @@ import re
 import uuid
 from typing import Any, Dict, List, Optional
 
+from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from alithia.core.pdf_processor import PDFProcessor
 
-from langchain_core.tools import BaseTool
 from .base import ToolInput, ToolOutput
 from .models import Citation, ParagraphElement, Section, StructuredPaper
 

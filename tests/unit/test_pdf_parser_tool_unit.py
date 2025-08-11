@@ -1,9 +1,5 @@
-import types
-
-import pytest
-
-from alithia.core.tools.pdf_parser import PDFParserTool, PDFParserInput
 from alithia.core.tools.models import ParagraphElement
+from alithia.core.tools.pdf_parser import PDFParserInput, PDFParserTool
 
 
 class DummyPDFProcessor:

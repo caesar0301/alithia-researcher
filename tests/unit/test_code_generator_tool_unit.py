@@ -1,8 +1,4 @@
-import types
-
-import pytest
-
-from alithia.core.tools.code_generator import CodeGeneratorTool, CodeGeneratorInput
+from alithia.core.tools.code_generator import CodeGeneratorInput, CodeGeneratorTool
 from alithia.core.tools.models import ParagraphElement, Section, StructuredPaper
 
 

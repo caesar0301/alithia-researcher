@@ -1,8 +1,6 @@
 import types
 
-import pytest
-
-from alithia.core.tools.web_searcher import WebSearcherTool, FindPaperInfoInput
+from alithia.core.tools.web_searcher import FindPaperInfoInput, WebSearcherTool
 
 
 class DummyAuthor:

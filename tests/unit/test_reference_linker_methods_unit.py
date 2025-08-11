@@ -1,5 +1,3 @@
-import pytest
-
 from alithia.core.tools.reference_linker import ReferenceLinkerTool
 
 

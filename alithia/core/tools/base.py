@@ -3,7 +3,6 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 # Re-export LangChain BaseTool to ensure ecosystem compatibility
-from langchain_core.tools import BaseTool as BaseTool
 
 
 class ToolInput(BaseModel):

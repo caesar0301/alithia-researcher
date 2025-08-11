@@ -1,14 +1,14 @@
 from .base import BaseTool, ToolInput, ToolOutput
 from .models import (
-    StructuredPaper,
-    PaperMetadata,
-    Section,
-    ParagraphElement,
-    FigureElement,
-    TableElement,
-    EquationElement,
     AlgorithmElement,
     BibliographyEntry,
+    EquationElement,
+    FigureElement,
+    PaperMetadata,
+    ParagraphElement,
+    Section,
+    StructuredPaper,
+    TableElement,
 )
 
 __all__ = [

@@ -2,11 +2,11 @@ import types
 
 import pytest
 
-from alithia.core.tools.pdf_parser import PDFParserTool, PDFParserInput
-from alithia.core.tools.web_searcher import WebSearcherTool, FindPaperInfoInput
-from alithia.core.tools.reference_linker import ReferenceLinkerTool, ReferenceLinkerInput
-from alithia.core.tools.code_generator import CodeGeneratorTool, CodeGeneratorInput
+from alithia.core.tools.code_generator import CodeGeneratorInput, CodeGeneratorTool
 from alithia.core.tools.models import BibliographyEntry, ParagraphElement, Section, StructuredPaper
+from alithia.core.tools.pdf_parser import PDFParserInput, PDFParserTool
+from alithia.core.tools.reference_linker import ReferenceLinkerInput, ReferenceLinkerTool
+from alithia.core.tools.web_searcher import FindPaperInfoInput, WebSearcherTool
 
 
 @pytest.mark.integration
@@ -42,7 +42,9 @@ def test_web_searcher_integration(monkeypatch):
         def get_short_id(self):
             return "0000.00000"
 
-    monkeypatch.setattr(ws.arxiv, "Client", lambda num_retries=5: types.SimpleNamespace(results=lambda s: iter([DummyRes()])))
+    monkeypatch.setattr(
+        ws.arxiv, "Client", lambda num_retries=5: types.SimpleNamespace(results=lambda s: iter([DummyRes()]))
+    )
     monkeypatch.setattr(ws.arxiv, "Search", lambda query, max_results=5: types.SimpleNamespace())
 
     tool = WebSearcherTool()

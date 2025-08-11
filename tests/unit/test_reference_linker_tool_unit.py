@@ -1,26 +1,42 @@
 import numpy as np
-import pytest
 
+from alithia.core.embedding import EmbeddingService
 from alithia.core.tools.models import BibliographyEntry, ParagraphElement, Section, StructuredPaper
-from alithia.core.tools.reference_linker import ReferenceLinkerTool, ReferenceLinkerInput
+from alithia.core.tools.reference_linker import ReferenceLinkerInput, ReferenceLinkerTool
 
 
-class DummyEmbeddingService:
+class DummyEmbeddingService(EmbeddingService):
+    def __init__(self):
+        # Don't call super().__init__() to avoid loading real models
+        pass
+
     def embed_texts(self, texts):
-        # Simple deterministic embeddings based on length
-        vecs = np.array([[len(t) / 100.0, 1.0] for t in texts], dtype=float)
-        # normalize
-        norms = np.linalg.norm(vecs, axis=1, keepdims=True)
-        return vecs / np.clip(norms, 1e-9, None)
+        # Create embeddings that make "previous work" similar to para3
+        vecs = []
+        for text in texts:
+            if "previous work" in text.lower():
+                # High similarity for query and para3
+                vecs.append([0.9, 0.1])
+            elif "follow" in text.lower() and "work" in text.lower():
+                # High similarity for para3
+                vecs.append([0.8, 0.2])
+            else:
+                # Lower similarity for other paragraphs
+                vecs.append([0.1, 0.9])
+        return np.array(vecs, dtype=float)
 
     def rerank(self, query, candidates, top_k=8):
         return candidates
 
 
 def build_sample_paper():
-    para1 = ParagraphElement(element_id="p1", text="Discussed methods [1].")
-    para2 = ParagraphElement(element_id="p2", text="Background details and survey.")
-    para3 = ParagraphElement(element_id="p3", text="We follow previous work [2, 3].")
+    from alithia.core.tools.models import Citation
+
+    para1 = ParagraphElement(element_id="p1", text="Discussed methods [1].", citations=[Citation(key="[1]")])
+    para2 = ParagraphElement(element_id="p2", text="Background details and survey.", citations=[])
+    para3 = ParagraphElement(
+        element_id="p3", text="We follow previous work [2, 3].", citations=[Citation(key="[2]"), Citation(key="[3]")]
+    )
     section = Section(section_number="1", title="Intro", content=[para1, para2, para3])
     bib = [
         BibliographyEntry(ref_id="[1]", full_citation="Ref One"),

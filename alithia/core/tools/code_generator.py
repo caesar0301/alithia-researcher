@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from langchain_core.tools import BaseTool
+from pydantic import BaseModel
 
 from alithia.core.llm_utils import get_llm
 from alithia.core.profile import ResearchProfile
 
-from langchain_core.tools import BaseTool
 from .base import ToolInput, ToolOutput
 from .models import StructuredPaper
 
