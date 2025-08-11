@@ -1,12 +1,9 @@
 import re
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 
 from alithia.core.arxiv_paper_utils import (
-    ExtractAffiliationsTool,
-    GenerateTLDRTool,
-    GetCodeURLTool,
     extract_affiliations,
     generate_tldr,
     get_code_url,
@@ -62,36 +59,3 @@ def test_extract_affiliations_parses_list():
         assert set(affs) == {"Inst A", "Inst B"}
 
 
-def test_generate_tldr_tool_wrapper(monkeypatch):
-    paper = ArxivPaper(title="T", summary="S", authors=["A"], arxiv_id="1", pdf_url="u")
-
-    class DummyLLM:
-        def chat_completion(self, messages):
-            return "TLDR"
-
-    tool = GenerateTLDRTool()
-    out = tool({"paper": paper, "llm": DummyLLM()})
-    assert out.tldr == "TLDR"
-
-
-def test_extract_affiliations_tool_wrapper(monkeypatch):
-    paper = ArxivPaper(title="T", summary="S", authors=["A"], arxiv_id="1", pdf_url="u")
-
-    class DummyLLM:
-        def chat_completion(self, messages):
-            return "['X University']"
-
-    tool = ExtractAffiliationsTool()
-    out = tool({"paper": paper, "llm": DummyLLM()})
-    assert isinstance(out.affiliations, list)
-
-
-def test_get_code_url_tool_wrapper(monkeypatch):
-    paper = ArxivPaper(title="T", summary="S", authors=["A"], arxiv_id="1", pdf_url="u")
-    # Monkeypatch get_code_url to avoid network
-    monkeypatch.setattr(
-        "alithia.core.arxiv_paper_utils.get_code_url", lambda p: "https://github.com/example/repo"
-    )
-    tool = GetCodeURLTool()
-    out = tool({"paper": paper})
-    assert out.url.endswith("/repo")

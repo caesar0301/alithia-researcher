@@ -10,7 +10,7 @@ from typing import List
 import types
 import pytest
 
-from alithia.core.arxiv_client import FindArxivPapersTool, get_arxiv_papers
+from alithia.core.arxiv_client import get_arxiv_papers
 from alithia.core.paper import ArxivPaper
 
 
@@ -151,16 +151,3 @@ class TestArxivClientUnit:
             assert papers[0].arxiv_id == "1234.5678"
 
 
-def test_find_arxiv_papers_tool_uses_wrapper(monkeypatch):
-    import alithia.core.arxiv_client as ac
-    import feedparser as fp
-
-    # Monkeypatch feedparser and arxiv client behavior
-    monkeypatch.setattr(fp, "parse", lambda url: DummyFeed(["0000.00001"]))
-    result = DummyArxivResult("T", "S", ["A"], "http://x/y.pdf")
-    monkeypatch.setattr(ac.arxiv, "Client", lambda num_retries=10, delay_seconds=10: DummyClient([result]))
-    monkeypatch.setattr(ac.arxiv, "Search", lambda **kwargs: types.SimpleNamespace())
-
-    tool = FindArxivPapersTool()
-    out = tool({"arxiv_query": "cs.AI", "debug": False})
-    assert out.papers and isinstance(out.papers[0], ArxivPaper)
