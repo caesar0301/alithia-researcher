@@ -1,13 +1,8 @@
-import re
 from unittest.mock import Mock, patch
 
 import pytest
 
-from alithia.core.arxiv_paper_utils import (
-    extract_affiliations,
-    generate_tldr,
-    get_code_url,
-)
+from alithia.core.arxiv_paper_utils import extract_affiliations, extract_tex_content, generate_tldr
 from alithia.core.paper import ArxivPaper
 
 
@@ -57,5 +52,3 @@ def test_extract_affiliations_parses_list():
 
         affs = extract_affiliations(p, fake_llm)
         assert set(affs) == {"Inst A", "Inst B"}
-
-

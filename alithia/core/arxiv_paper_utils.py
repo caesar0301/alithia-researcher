@@ -163,8 +163,8 @@ def generate_tldr(paper: ArxivPaper, llm: BaseLLMClient) -> str:
 
     prompt = """Given the title, abstract, introduction and the conclusion (if any) of a paper in latex format, generate a one-sentence TLDR summary in __LANG__:
     
-    \title{__TITLE__}
-    \begin{abstract}__ABSTRACT__\end{abstract}
+    \\title{__TITLE__}
+    \\begin{abstract}__ABSTRACT__\\end{abstract}
     __INTRODUCTION__
     __CONCLUSION__
     """
