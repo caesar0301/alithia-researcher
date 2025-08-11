@@ -24,5 +24,5 @@ def test_get_llm_sets_env_and_model():
     assert os.environ.get("OPENAI_API_KEY") == "secret"
     assert os.environ.get("OPENAI_BASE_URL") == "http://base"
     assert fake_client.chat_model == "gpt-x"
-    # called with provider openai
-    mock_get.assert_called_with(provider="openai")
+    # called with provider openai and chat_model
+    mock_get.assert_called_with(provider="openai", chat_model="gpt-x")

@@ -71,5 +71,7 @@ class ResearchProfile(BaseModel):
             errors.append("Sender email is required")
         if not self.receiver_email:
             errors.append("Receiver email is required")
+        if not self.openai_api_key:
+            errors.append("OpenAI API key is required when using LLM API")
 
         return errors

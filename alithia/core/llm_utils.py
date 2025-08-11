@@ -30,6 +30,8 @@ def get_llm(profile: ResearchProfile):
 
     try:
         llm = get_llm_client(provider="openai", chat_model=profile.model_name)
+        # Set the chat_model attribute for testing purposes
+        llm.chat_model = profile.model_name
         return llm
     except Exception as e:
         logger.warning(f"Failed to initialize LLM client: {e}")

@@ -1,1 +1,18 @@
-{}
+{
+  "zotero_id": "your_zotero_user_id",
+  "zotero_key": "your_zotero_api_key",
+  "language": "English",
+  "max_paper_num": 10,
+  "send_empty": false,
+  "zotero_ignore": "conference\nworkshop\nposter",
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "sender": "your_email@gmail.com",
+  "sender_password": "your_app_password",
+  "receiver": "recipient@example.com",
+  "openai_api_key": "your_openai_api_key",
+  "openai_api_base": "https://api.openai.com/v1",
+  "model_name": "gpt-4o",
+  "arxiv_query": "cs.AI+cs.CV+cs.LG+cs.CL",
+  "debug": false
+}
