@@ -1,6 +1,6 @@
+import os
 from unittest.mock import MagicMock, patch
 
-import os
 import pytest
 
 from alithia.core.llm_utils import get_llm
@@ -20,7 +20,7 @@ def test_get_llm_sets_env_and_model():
 
     fake_client = MagicMock()
     with patch("alithia.core.llm_utils.get_llm_client", return_value=fake_client) as mock_get:
-        llm = get_llm(profile)
+        get_llm(profile)
 
     assert os.environ.get("OPENAI_API_KEY") == "secret"
     assert os.environ.get("OPENAI_BASE_URL") == "http://base"

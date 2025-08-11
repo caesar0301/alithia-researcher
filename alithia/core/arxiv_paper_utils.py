@@ -12,6 +12,7 @@ from urllib.error import HTTPError
 
 import requests
 import tiktoken
+from cogents.common.llm import BaseLLMClient
 from requests.adapters import HTTPAdapter, Retry
 
 from .paper import ArxivPaper
@@ -32,17 +33,15 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
     with ExitStack() as stack:
         tmpdirname = stack.enter_context(TemporaryDirectory())
         try:
-            if not paper.arxiv_result:
-                logger.warning(f"No arxiv result available for {paper.arxiv_id}, skipping source analysis")
-                return None
-            file = paper.arxiv_result.download_source(dirpath=tmpdirname)
-        except HTTPError as e:
-            if e.code == 404:
-                # Source files don't exist (normal)
+            file = paper.download_source(dirpath=tmpdirname)
+        except (HTTPError, AttributeError) as e:
+            if isinstance(e, HTTPError) and e.code == 404:
                 logger.warning(f"Source for {paper.arxiv_id} not found (404). Skipping source analysis.")
                 return None
+            elif isinstance(e, AttributeError):
+                logger.warning(f"No arxiv_result available for {paper.arxiv_id}. Skipping source analysis.")
+                return None
             else:
-                # Other HTTP errors may be temporary
                 logger.error(f"HTTP Error {e.code} when downloading source for {paper.arxiv_id}: {e.reason}")
                 raise
         try:
@@ -81,17 +80,20 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
             logger.debug(
                 f"Trying to choose tex file containing the document block as main tex file of {paper.arxiv_id}"
             )
-        # Process all tex files
+
+        # read all tex files
         file_contents = {}
         for t in tex_files:
             f = tar.extractfile(t)
             content = f.read().decode("utf-8", errors="ignore")
-            # Clean content
+            # remove comments
             content = re.sub(r"%.*\n", "\n", content)
             content = re.sub(r"\\begin{comment}.*?\\end{comment}", "", content, flags=re.DOTALL)
             content = re.sub(r"\\iffalse.*?\\fi", "", content, flags=re.DOTALL)
+            # remove redundant \n
             content = re.sub(r"\n+", "\n", content)
             content = re.sub(r"\\\\", "", content)
+            # remove consecutive spaces
             content = re.sub(r"[ \t\r\f]{3,}", " ", content)
             if main_tex is None and re.search(r"\\begin\{document\}", content):
                 main_tex = t
@@ -100,7 +102,7 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
 
         if main_tex is not None:
             main_source: str = file_contents[main_tex]
-            # Resolve includes
+            # find and replace all included sub-files
             include_files = re.findall(r"\\input\{(.+?)\}", main_source) + re.findall(
                 r"\\include\{(.+?)\}", main_source
             )
@@ -116,10 +118,10 @@ def extract_tex_content(paper: ArxivPaper) -> Optional[Dict[str, str]]:
                 f"Failed to find main tex file of {paper.arxiv_id}: No tex file containing the document block."
             )
             file_contents["all"] = None
-        return file_contents
+    return file_contents
 
 
-def generate_tldr(paper: ArxivPaper, llm) -> str:
+def generate_tldr(paper: ArxivPaper, llm: BaseLLMClient) -> str:
     """
     Generate TLDR summary for a paper.
 
@@ -132,18 +134,18 @@ def generate_tldr(paper: ArxivPaper, llm) -> str:
     """
     introduction = ""
     conclusion = ""
-
-    # Get LaTeX content
-    tex_content = extract_tex_content(paper)
-    if tex_content is not None:
-        content = tex_content.get("all")
+    if paper.tex is not None:
+        content = paper.tex.get("all")
         if content is None:
-            content = "\n".join(tex_content.values())
-        # Clean content
+            content = "\n".join(paper.tex.values())
+        # remove cite
         content = re.sub(r"~?\\cite.?\{.*?\}", "", content)
+        # remove figure
         content = re.sub(r"\\begin\{figure\}.*?\\end\{figure\}", "", content, flags=re.DOTALL)
+        # remove table
         content = re.sub(r"\\begin\{table\}.*?\\end\{table\}", "", content, flags=re.DOTALL)
-        # Extract sections
+        # find introduction and conclusion
+        # end word can be \section or \end{document} or \bibliography or \appendix
         match = re.search(
             r"\\section\{Introduction\}.*?(\\section|\\end\{document\}|\\bibliography|\\appendix|$)",
             content,
@@ -159,20 +161,30 @@ def generate_tldr(paper: ArxivPaper, llm) -> str:
         if match:
             conclusion = match.group(0)
 
-    prompt = f"""Given the title, abstract, introduction and the conclusion (if any) of a paper in latex format, generate a one-sentence TLDR summary in English:
+    prompt = """Given the title, abstract, introduction and the conclusion (if any) of a paper in latex format, generate a one-sentence TLDR summary in __LANG__:
+    
+    \\title{__TITLE__}
+    \\begin{abstract}__ABSTRACT__\\end{abstract}
+    __INTRODUCTION__
+    __CONCLUSION__
+    """
+    # Get language from LLM or default to English
+    lang = getattr(llm, "lang", "English")
+    if hasattr(lang, "__call__"):  # If it's a Mock or callable, use default
+        lang = "English"
+    prompt = prompt.replace("__LANG__", lang)
+    prompt = prompt.replace("__TITLE__", paper.title)
+    prompt = prompt.replace("__ABSTRACT__", paper.summary)
+    prompt = prompt.replace("__INTRODUCTION__", introduction)
+    prompt = prompt.replace("__CONCLUSION__", conclusion)
 
-\\title{{{paper.title}}}
-\\begin{{abstract}}{paper.summary}\\end{{abstract}}
-{introduction}
-{conclusion}"""
-
-    # Truncate prompt if too long
+    # use gpt-4o tokenizer for estimation
     enc = tiktoken.encoding_for_model("gpt-4o")
     prompt_tokens = enc.encode(prompt)
-    prompt_tokens = prompt_tokens[:4000]
+    prompt_tokens = prompt_tokens[:4000]  # truncate to 4000 tokens
     prompt = enc.decode(prompt_tokens)
 
-    tldr = llm.generate(
+    tldr = llm.chat_completion(
         messages=[
             {
                 "role": "system",
@@ -195,12 +207,19 @@ def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
     Returns:
         List of affiliations or None if extraction fails
     """
-    tex_content = extract_tex_content(paper)
+    # First try to get tex content from paper.tex, then fall back to extract_tex_content
+    tex_content = paper.tex
+    if tex_content is None:
+        tex_content = extract_tex_content(paper)
+        # If we got content from extract_tex_content, store it in paper.tex for future use
+        if tex_content is not None:
+            paper.tex = tex_content
+
     if tex_content is not None:
         content = tex_content.get("all")
         if content is None:
             content = "\n".join(tex_content.values())
-        # Find author info
+        # search for affiliations
         possible_regions = [r"\\author.*?\\maketitle", r"\\begin{document}.*?\\begin{abstract}"]
         matches = [re.search(p, content, flags=re.DOTALL) for p in possible_regions]
         match = next((m for m in matches if m), None)
@@ -210,12 +229,12 @@ def extract_affiliations(paper: ArxivPaper, llm) -> Optional[List[str]]:
             logger.debug(f"Failed to extract affiliations of {paper.arxiv_id}: No author information found.")
             return None
         prompt = f"Given the author information of a paper in latex format, extract the affiliations of the authors in a python list format, which is sorted by the author order. If there is no affiliation found, return an empty list '[]'. Following is the author information:\n{information_region}"
-        # Truncate prompt if too long
+        # use gpt-4o tokenizer for estimation
         enc = tiktoken.encoding_for_model("gpt-4o")
         prompt_tokens = enc.encode(prompt)
-        prompt_tokens = prompt_tokens[:4000]
+        prompt_tokens = prompt_tokens[:4000]  # truncate to 4000 tokens
         prompt = enc.decode(prompt_tokens)
-        affiliations = llm.generate(
+        affiliations = llm.chat_completion(
             messages=[
                 {
                     "role": "system",

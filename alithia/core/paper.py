@@ -22,6 +22,7 @@ class ArxivPaper(BaseModel):
     tldr: Optional[str] = None
     score: Optional[float] = None
     published_date: Optional[datetime] = None
+    tex: Optional[Dict[str, str]] = None  # Store extracted LaTeX content
     arxiv_result: Optional[Any] = Field(
         default=None, exclude=True
     )  # Store original arxiv.Result object for source access
@@ -40,6 +41,12 @@ class ArxivPaper(BaseModel):
             published_date=paper_result.published,
             arxiv_result=paper_result,  # Store the original result object
         )
+
+    def download_source(self, dirpath: str) -> str:
+        """Download source files for the paper."""
+        if self.arxiv_result is None:
+            raise AttributeError("Cannot download source: no arxiv_result available")
+        return self.arxiv_result.download_source(dirpath=dirpath)
 
 
 class ScoredPaper(BaseModel):

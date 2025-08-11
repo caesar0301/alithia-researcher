@@ -62,7 +62,7 @@
 
 - **Tests**: Do not add or run tests unless explicitly requested. Place unittests under folder `tests/unit` and integration under `tests/integration`.
 - **Runtime**: Assume non-interactive execution for internal steps; CLI must be user-friendly.
-- **Run tests**: `make test-unit` for unit tests. `make test-integration` for integration tests.
+- **Run tests**: `make test-unit` for unit tests. `make test-integration` for integration tests which are marked by `pytest.mark.integration`.
 
 ### Compatibility and Backwards Safety
 

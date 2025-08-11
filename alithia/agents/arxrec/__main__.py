@@ -138,7 +138,11 @@ def build_config_from_args(args) -> dict:
     for arg_name, config_key in arg_mapping.items():
         value = getattr(args, arg_name.replace("-", "_"))
         if value is not None:
-            config[config_key.lower()] = value
+            # Handle boolean flags properly
+            if arg_name in ["send_empty", "use_llm_api", "debug"]:
+                config[config_key.lower()] = bool(value)
+            else:
+                config[config_key.lower()] = value
 
     # Add environment variables (lower priority than command line)
     env_mapping = {
@@ -158,6 +162,7 @@ def build_config_from_args(args) -> dict:
         "openai_api_base": "OPENAI_API_BASE",
         "model_name": "MODEL_NAME",
         "language": "LANGUAGE",
+        "debug": "DEBUG",
     }
 
     for config_key, env_key in env_mapping.items():
@@ -170,7 +175,7 @@ def build_config_from_args(args) -> dict:
                         value = int(value)
                     except ValueError:
                         continue
-                elif config_key in ["send_empty", "use_llm_api"]:
+                elif config_key in ["send_empty", "use_llm_api", "debug"]:
                     value = str(value).lower() in ["true", "1", "yes"]
                 config[config_key] = value
 

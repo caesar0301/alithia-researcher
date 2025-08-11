@@ -30,7 +30,7 @@ def test_profile_from_config_defaults_and_values():
     assert p.zotero_id == "zid"
     assert p.max_papers == 30
     assert p.send_empty is True
-    assert p.ignore_patterns == ["a", " b", ""]
+    assert p.ignore_patterns == ["a", " b"]
     assert p.model_name == "gpt-x"
 
 

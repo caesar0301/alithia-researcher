@@ -188,6 +188,11 @@ def communication_node(state: AgentState) -> dict:
     Returns:
         Dictionary with updated state fields
     """
+    logger.info(f"state.debug_mode: {state.debug_mode}")
+    if state.debug_mode:
+        logger.info("Skipping email delivery in debug mode")
+        return {"current_step": "workflow_complete"}
+
     logger.info("Preparing email delivery...")
 
     if not state.profile:
