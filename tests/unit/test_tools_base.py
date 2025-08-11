@@ -1,6 +1,6 @@
 import pytest
 
-from alithia.core.tools.base import Tool, ToolInput, ToolOutput
+from alithia.core.tools.base import BaseTool, ToolInput, ToolOutput
 
 
 class EchoInput(ToolInput):
@@ -11,16 +11,21 @@ class EchoOutput(ToolOutput):
     text: str
 
 
-class EchoTool(Tool):
-    InputModel = EchoInput
+class EchoTool(BaseTool):
+    name: str = "test.echo"
+    description: str = "Echo back provided text"
+    args_schema = EchoInput
 
     def execute(self, inputs: EchoInput, **kwargs):
         return EchoOutput(text=inputs.text)
 
+    def _run(self, text: str) -> EchoOutput:  # type: ignore[override]
+        return self.execute(EchoInput(text=text))
 
-def test_tool_execute_and_call():
+
+def test_tool_execute_and_invoke():
     tool = EchoTool()
     out = tool.execute(EchoInput(text="hello"))
     assert out.text == "hello"
-    out2 = tool({"text": "world"})
+    out2 = tool.invoke({"text": "world"})
     assert out2.text == "world"

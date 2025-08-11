@@ -7,7 +7,8 @@ import numpy as np
 
 from alithia.core.embedding import EmbeddingService, cosine_similarity_matrix
 
-from .base import Tool, ToolInput, ToolOutput
+from langchain_core.tools import BaseTool
+from .base import ToolInput, ToolOutput
 from .models import BibliographyEntry, ParagraphElement, Section, StructuredPaper
 
 
@@ -21,12 +22,15 @@ class ReferenceLinkerOutput(ToolOutput):
     references: List[BibliographyEntry]
 
 
-class ReferenceLinkerTool(Tool):
-    InputModel = ReferenceLinkerInput
+class ReferenceLinkerTool(BaseTool):
+    name: str = "core.reference_linker"
+    description: str = "Resolve citations relevant to a query from a parsed paper"
+    args_schema = ReferenceLinkerInput
 
-    def __init__(self, embedding_service: Optional[EmbeddingService] = None) -> None:
-        super().__init__(name="core.reference_linker", description="Resolve citations relevant to a query from a parsed paper")
-        self.embedding_service = embedding_service  # allow None for lazy init
+    embedding_service: Optional[EmbeddingService] = None
+
+    def __init__(self, embedding_service: Optional[EmbeddingService] = None, **data: Any) -> None:
+        super().__init__(embedding_service=embedding_service, **data)
         self._citation_regex = re.compile(r"\\?\[(\d+(?:,\s*\d+)*)\]|\(([^\)]+?),\s*(\d{4})\)")
 
     def execute(self, inputs: ReferenceLinkerInput, **kwargs: Any) -> ReferenceLinkerOutput:
@@ -73,6 +77,10 @@ class ReferenceLinkerTool(Tool):
             if entry:
                 found[key] = entry
         return ReferenceLinkerOutput(references=list(found.values()))
+
+    # BaseTool sync run implementation (structured)
+    def _run(self, source_paper: StructuredPaper, query: str, top_k: int = 5) -> ReferenceLinkerOutput:  # type: ignore[override]
+        return self.execute(ReferenceLinkerInput(source_paper=source_paper, query=query, top_k=top_k))
 
     def _extract_citation_keys(self, text: str) -> List[str]:
         keys: List[str] = []

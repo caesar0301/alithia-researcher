@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from alithia.core.llm_utils import get_llm
 from alithia.core.profile import ResearchProfile
 
-from .base import Tool, ToolInput, ToolOutput
+from langchain_core.tools import BaseTool
+from .base import ToolInput, ToolOutput
 from .models import StructuredPaper
 
 
@@ -22,14 +23,10 @@ class CodeGeneratorOutput(ToolOutput):
     generated_code: str
 
 
-class CodeGeneratorTool(Tool):
-    InputModel = CodeGeneratorInput
-
-    def __init__(self) -> None:
-        super().__init__(
-            name="core.code_generator",
-            description="Translate algorithmic pseudocode into executable Python using an LLM",
-        )
+class CodeGeneratorTool(BaseTool):
+    name: str = "core.code_generator"
+    description: str = "Translate algorithmic pseudocode into executable Python using an LLM"
+    args_schema: type[BaseModel] = CodeGeneratorInput
 
     def execute(self, inputs: CodeGeneratorInput, **kwargs: Any) -> CodeGeneratorOutput:
         profile = inputs.profile
@@ -42,6 +39,17 @@ class CodeGeneratorTool(Tool):
         response = self._send_llm(llm, prompt_messages)
         code = str(response).strip()
         return CodeGeneratorOutput(generated_code=code)
+
+    # BaseTool sync run implementation (structured)
+    def _run(self, pseudocode_element: Dict[str, Any], source_paper: StructuredPaper, related_elements: Optional[List[Dict[str, Any]]] = None, profile: Optional[ResearchProfile] = None) -> CodeGeneratorOutput:  # type: ignore[override]
+        return self.execute(
+            CodeGeneratorInput(
+                pseudocode_element=pseudocode_element,
+                source_paper=source_paper,
+                related_elements=related_elements,
+                profile=profile,
+            )
+        )
 
     def _build_prompt(self, inputs: CodeGeneratorInput) -> List[Dict[str, str]]:
         pseudo = inputs.pseudocode_element.get("pseudocode") or inputs.pseudocode_element.get("text") or ""

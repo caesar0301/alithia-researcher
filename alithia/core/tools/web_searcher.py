@@ -5,7 +5,8 @@ from typing import Any, Dict, List, Optional
 import arxiv
 from pydantic import BaseModel
 
-from .base import Tool, ToolInput, ToolOutput
+from langchain_core.tools import BaseTool
+from .base import ToolInput, ToolOutput
 
 
 class FindPaperInfoInput(ToolInput):
@@ -18,18 +19,14 @@ class FindPaperInfoOutput(ToolOutput):
     pdf_url: Optional[str] = None
 
 
-class WebSearcherTool(Tool):
-    InputModel = FindPaperInfoInput
-
-    def __init__(self) -> None:
-        super().__init__(
-            name="core.web_searcher",
-            description="Find paper metadata and PDF URL via academic sources (arXiv first)",
-        )
+class WebSearcherTool(BaseTool):
+    name: str = "core.web_searcher"
+    description: str = "Find paper metadata and PDF URL via academic sources (arXiv first)"
+    args_schema: type[BaseModel] = FindPaperInfoInput
 
     def execute(self, inputs: FindPaperInfoInput, **kwargs: Any) -> FindPaperInfoOutput:
         # Try arXiv exact title match first
-        search = arxiv.Search(query=f'ti:"{inputs.title}"', max_results=5)
+        search = arxiv.Search(query=f'"{inputs.title}"', max_results=5)
         client = arxiv.Client(num_retries=5)
         candidates = list(client.results(search))
 
@@ -57,6 +54,10 @@ class WebSearcherTool(Tool):
 
         # Fallback: return minimal metadata without URL
         return FindPaperInfoOutput(metadata={"title": inputs.title, "authors": inputs.authors or []}, pdf_url=None)
+
+    # BaseTool sync run implementation (structured)
+    def _run(self, title: str, authors: Optional[List[str]] = None) -> FindPaperInfoOutput:  # type: ignore[override]
+        return self.execute(FindPaperInfoInput(title=title, authors=authors))
 
     # Convenience sub-tools as methods for tests and future chaining
     def find_paper_info(self, title: str, authors: Optional[List[str]] = None) -> FindPaperInfoOutput:

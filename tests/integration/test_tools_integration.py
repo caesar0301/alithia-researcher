@@ -20,7 +20,7 @@ def test_pdf_parser_integration(monkeypatch):
 
     tool = PDFParserTool()
     monkeypatch.setattr(tool, "processor", DummyPDFProcessor())
-    out = tool(PDFParserInput(file_path="/tmp/sample.pdf"))
+    out = tool.execute(PDFParserInput(file_path="/tmp/sample.pdf"))
     assert out.structured_paper.sections
 
 
@@ -46,7 +46,7 @@ def test_web_searcher_integration(monkeypatch):
     monkeypatch.setattr(ws.arxiv, "Search", lambda query, max_results=5: types.SimpleNamespace())
 
     tool = WebSearcherTool()
-    out = tool(FindPaperInfoInput(title="Foo"))
+    out = tool.execute(FindPaperInfoInput(title="Foo"))
     assert out.pdf_url and out.metadata
 
 
@@ -65,7 +65,7 @@ def test_reference_linker_integration(monkeypatch):
         bibliography=[BibliographyEntry(ref_id="[1]", full_citation="Ref")],
     )
     tool = ReferenceLinkerTool(embedding_service=DummyEmbeddingService())
-    out = tool(ReferenceLinkerInput(source_paper=paper, query="topic"))
+    out = tool.execute(ReferenceLinkerInput(source_paper=paper, query="topic"))
     assert out.references
 
 
@@ -81,5 +81,5 @@ def test_code_generator_integration(monkeypatch):
 
     paper = StructuredPaper(paper_id="p", sections=[Section(section_number="1", title="t", content=[])])
     tool = CodeGeneratorTool()
-    out = tool(CodeGeneratorInput(pseudocode_element={"pseudocode": "x"}, source_paper=paper))
+    out = tool.execute(CodeGeneratorInput(pseudocode_element={"pseudocode": "x"}, source_paper=paper))
     assert "print" in out.generated_code

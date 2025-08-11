@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import re
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
 from alithia.core.pdf_processor import PDFProcessor
 
-from .base import Tool, ToolInput, ToolOutput
+from langchain_core.tools import BaseTool
+from .base import ToolInput, ToolOutput
 from .models import Citation, ParagraphElement, Section, StructuredPaper
 
 
@@ -20,12 +21,12 @@ class PDFParserOutput(ToolOutput):
     structured_paper: StructuredPaper
 
 
-class PDFParserTool(Tool):
-    InputModel = PDFParserInput
+class PDFParserTool(BaseTool):
+    name: str = "core.pdf_parser"
+    description: str = "Parse PDF into structured paper elements using MinerU"
+    args_schema: type[BaseModel] = PDFParserInput
 
-    def __init__(self) -> None:
-        super().__init__(name="core.pdf_parser", description="Parse PDF into structured paper elements using MinerU")
-        self.processor = None  # Lazy init to avoid hard dependency during tests
+    processor: Optional[PDFProcessor] = None
 
     def execute(self, inputs: PDFParserInput, **kwargs: Any) -> PDFParserOutput:
         # Lazy initialize processor if not injected (useful for tests)
@@ -61,3 +62,7 @@ class PDFParserTool(Tool):
             sections=[section],
         )
         return PDFParserOutput(structured_paper=structured)
+
+    # BaseTool sync run implementation (structured)
+    def _run(self, file_path: str) -> PDFParserOutput:  # type: ignore[override]
+        return self.execute(PDFParserInput(file_path=file_path))
