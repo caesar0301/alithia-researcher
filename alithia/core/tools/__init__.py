@@ -1,4 +1,4 @@
-from .base import Tool, ToolInput, ToolOutput
+from .base import BaseTool, ToolInput, ToolOutput
 from .models import (
     StructuredPaper,
     PaperMetadata,
@@ -12,7 +12,7 @@ from .models import (
 )
 
 __all__ = [
-    "Tool",
+    "BaseTool",
     "ToolInput",
     "ToolOutput",
     "StructuredPaper",

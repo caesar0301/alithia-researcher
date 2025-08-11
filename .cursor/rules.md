@@ -41,6 +41,7 @@
 - **LLM client**: Use `cogents.common.llm.get_llm_client` via a helper in `alithia/core/llm_utils.py`.
 - **Provider**: Default to OpenAI provider; model configurable via profile/config.
 - **Usage**: Generate answers/summaries using `llm.generate(messages=[...])` with system/user roles.
+- **Tools**: Do not implement a custom tool base class. All tools must subclass `langchain_core.tools.BaseTool` and declare a `args_schema` pydantic model for inputs. Optional `execute()` helpers are allowed for internal usage.
 
 ### Configuration and Environment
 
