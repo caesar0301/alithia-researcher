@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from pinecone import Pinecone
@@ -27,7 +27,9 @@ class PineconeVectorStore:
             vectors.append({"id": chunk_id, "values": embeddings[i].tolist(), "metadata": meta})
         self.index.upsert(vectors=vectors, namespace=self.namespace)
 
-    def upsert_documents(self, docs: List[Dict[str, Any]], embeddings: np.ndarray, id_key: str = "id", text_key: str = "text") -> None:
+    def upsert_documents(
+        self, docs: List[Dict[str, Any]], embeddings: np.ndarray, id_key: str = "id", text_key: str = "text"
+    ) -> None:
         vectors = []
         for i, d in enumerate(docs):
             doc_id = str(d[id_key])
@@ -36,7 +38,9 @@ class PineconeVectorStore:
             vectors.append({"id": doc_id, "values": embeddings[i].tolist(), "metadata": meta})
         self.index.upsert(vectors=vectors, namespace=self.namespace)
 
-    def query(self, query_embedding: np.ndarray, top_k: int = 12, filter: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def query(
+        self, query_embedding: np.ndarray, top_k: int = 12, filter: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         res = self.index.query(
             vector=query_embedding.tolist(),
             top_k=top_k,
@@ -49,9 +53,11 @@ class PineconeVectorStore:
         for m in matches:
             meta = m.get("metadata") if isinstance(m, dict) else m.metadata
             score = m.get("score") if isinstance(m, dict) else m.score
-            results.append({
-                "id": m.get("id") if isinstance(m, dict) else m.id,
-                "metadata": meta,
-                "score": float(score) if score is not None else None,
-            })
+            results.append(
+                {
+                    "id": m.get("id") if isinstance(m, dict) else m.id,
+                    "metadata": meta,
+                    "score": float(score) if score is not None else None,
+                }
+            )
         return results

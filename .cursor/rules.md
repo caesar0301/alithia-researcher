@@ -56,11 +56,13 @@
 - **Common modules**: Place shared utilities in `alithia/core` and reuse across agents (PDF parsing, embeddings, vector/table stores, LLM utils).
 - **Imports**: Agents should import from `alithia/core/*` for shared logic.
 - **Code style**: Follow the repository’s formatting and typing discipline (pydantic models, explicit types for public APIs, early returns, minimal nesting).
+- **Data models**: Implement data models based on pydantic library instead of dataclasses.
 
 ### Testing and Ops
 
-- **Tests**: Do not add or run tests unless explicitly requested.
+- **Tests**: Do not add or run tests unless explicitly requested. Place unittests under folder `tests/unit` and integration under `tests/integration`.
 - **Runtime**: Assume non-interactive execution for internal steps; CLI must be user-friendly.
+- **Run tests**: `make test-unit` for unit tests. `make test-integration` for integration tests.
 
 ### Compatibility and Backwards Safety
 

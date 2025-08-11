@@ -4,16 +4,16 @@ Nodes for the AlithiaVigil agent workflow.
 
 import logging
 import os
-from typing import Dict, List
+from typing import List
 
 import feedparser
 
 from alithia.core.agent_state import AgentState
-from alithia.core.embedding import EmbeddingService
-from alithia.core.vector_store import PineconeVectorStore
-from alithia.core.table_store import SupabaseTableStore
 from alithia.core.email_utils import construct_email_content, send_email
+from alithia.core.embedding import EmbeddingService
 from alithia.core.paper import ArxivPaper, ScoredPaper
+from alithia.core.table_store import SupabaseTableStore
+from alithia.core.vector_store import PineconeVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -102,14 +102,16 @@ def filter_results_node(state: AgentState) -> dict:
         pid = p.arxiv_id or (p.title[:120] if p.title else None)
         if not pid:
             continue
-        docs_for_upsert.append({
-            "id": pid,
-            "text": text,
-            "title": p.title,
-            "arxiv_id": p.arxiv_id,
-            "pdf_url": p.pdf_url,
-            "source": "arxiv",
-        })
+        docs_for_upsert.append(
+            {
+                "id": pid,
+                "text": text,
+                "title": p.title,
+                "arxiv_id": p.arxiv_id,
+                "pdf_url": p.pdf_url,
+                "source": "arxiv",
+            }
+        )
     if docs_for_upsert:
         vector.upsert_documents(docs_for_upsert, paper_emb, id_key="id", text_key="text")
 
@@ -137,7 +139,10 @@ def filter_results_node(state: AgentState) -> dict:
             ScoredPaper(
                 paper=p,
                 score=score,
-                relevance_factors={"topic_similarity": r.get("base_score", 0.0), "rerank": float(r.get("rerank_score", 0.0))},
+                relevance_factors={
+                    "topic_similarity": r.get("base_score", 0.0),
+                    "rerank": float(r.get("rerank_score", 0.0)),
+                },
             )
         )
 

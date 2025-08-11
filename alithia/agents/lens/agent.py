@@ -9,12 +9,7 @@ from langgraph.graph import END, StateGraph
 
 from alithia.core.agent_state import AgentState
 
-from .nodes import (
-    get_user_input_node,
-    load_paper_node,
-    process_query_node,
-    route_query_node,
-)
+from .nodes import get_user_input_node, load_paper_node, process_query_node, route_query_node
 
 logger = logging.getLogger(__name__)
 

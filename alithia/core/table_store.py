@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict, List, Optional
 
-from supabase import create_client, Client
+from supabase import Client, create_client
 
 
 class SupabaseTableStore:

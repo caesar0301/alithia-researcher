@@ -4,15 +4,14 @@ Nodes for the AlithiaLens agent workflow.
 
 import logging
 import os
-from typing import Any, Dict, List, Literal, Optional
+from typing import Literal, Optional
 
 from alithia.core.agent_state import AgentState
-from alithia.core.llm_utils import get_llm
-
-from alithia.core.pdf_processor import PDFProcessor
 from alithia.core.embedding import EmbeddingService
-from alithia.core.vector_store import PineconeVectorStore
+from alithia.core.llm_utils import get_llm
+from alithia.core.pdf_processor import PDFProcessor
 from alithia.core.table_store import SupabaseTableStore
+from alithia.core.vector_store import PineconeVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +152,7 @@ def process_query_node(state: AgentState) -> dict:
     reranked = embed.rerank(query, retrieved, top_k=8)
 
     # Compose context
-    contexts = [r.get("text", "") for r in reranked]
+    [r.get("text", "") for r in reranked]
     context_block = "\n\n".join([f"[p{r.get('page')}] {r.get('text')}" for r in reranked])
 
     # Generate with LLM (cogents)

@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import List, Dict, Any
+import os
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +14,7 @@ class PDFProcessor:
         try:
             import mineru  # type: ignore  # noqa: F401
         except Exception as e:
-            raise RuntimeError(
-                "MinerU is required for PDF parsing. Please install and ensure it is importable."
-            ) from e
+            raise RuntimeError("MinerU is required for PDF parsing. Please install and ensure it is importable.") from e
 
     def process(self, pdf_path: str, max_chunk_chars: int = 1200, overlap: int = 150) -> List[Dict[str, Any]]:
         if not os.path.isfile(pdf_path):
