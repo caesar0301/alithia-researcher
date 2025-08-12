@@ -7,31 +7,31 @@ import os
 
 from cogents.common.llm import get_llm_client
 
-from .profile import ResearchProfile
+from .researcher import LLMConnection
 
 logger = logging.getLogger(__name__)
 
 
-def get_llm(profile: ResearchProfile):
+def get_llm(conn: LLMConnection):
     """
-    Get LLM instance based on profile configuration.
+    Get LLM instance based on LLMConnection configuration.
 
     Args:
-        profile: ResearchProfile instance
+        conn: LLMConnection instance
 
     Returns:
         LLM client instance
     """
     # Configure API settings
-    if profile.openai_api_key:
-        os.environ["OPENAI_API_KEY"] = profile.openai_api_key
-        if profile.openai_api_base:
-            os.environ["OPENAI_BASE_URL"] = profile.openai_api_base
+    if conn.openai_api_key:
+        os.environ["OPENAI_API_KEY"] = conn.openai_api_key
+        if conn.openai_api_base:
+            os.environ["OPENAI_BASE_URL"] = conn.openai_api_base
 
     try:
-        llm = get_llm_client(provider="openai", chat_model=profile.model_name)
+        llm = get_llm_client(provider="openai", chat_model=conn.model_name)
         # Set the chat_model attribute for testing purposes
-        llm.chat_model = profile.model_name
+        llm.chat_model = conn.model_name
         return llm
     except Exception as e:
         logger.warning(f"Failed to initialize LLM client: {e}")

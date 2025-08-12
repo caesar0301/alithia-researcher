@@ -4,7 +4,7 @@
 
 1. Fork this project
 2. Go to your repository Settings → Secrets and variables → Actions
-3. Add a new repository secret named `ARXREC_AGENT_CONFIG`
+3. Add a new repository secret named `ALITHIA_CONFIG_JSON`
 4. Set the value to your JSON configuration (see Configuration section below)
 
 **Schedule**: Runs daily at 01:00 UTC
@@ -13,28 +13,7 @@
 
 ### Configuration Structure
 
-The agent uses a JSON configuration like:
-
-```json
-{
-  "zotero_id": "your_zotero_user_id",
-  "zotero_key": "your_zotero_api_key",
-  "language": "English",
-  "max_paper_num": 10,
-  "send_empty": false,
-  "zotero_ignore": "",
-  "smtp_server": "smtp.gmail.com",
-  "smtp_port": 587,
-  "sender": "your_email@gmail.com",
-  "sender_password": "your_app_password",
-  "receiver": "recipient@example.com",
-  "openai_api_key": "your_openai_api_key",
-  "openai_api_base": "https://api.openai.com/v1",
-  "model_name": "gpt-4o",
-  "arxiv_query": "cs.AI+cs.CV+cs.LG+cs.CL",
-  "debug": false
-}
-```
+The agent uses a global JSON configuration like `alithia_config_example.json`
 
 ### Required Services
 
@@ -70,7 +49,7 @@ The agent uses a JSON configuration like:
 | `sender_password` | ✅ | Email app password | `"app_password"` |
 | `receiver` | ✅ | Recipient email address | `"recipient@example.com"` |
 | `openai_api_key` | ✅ | OpenAI API key | `"sk-..."` |
-| `openai_api_base` | ✅ | OpenAI base url | `"https://api.openai.com/v1"` |
+| `openai_api_base` | ❌ | OpenAI base url | `"https://api.openai.com/v1"` |
 | `max_paper_num` | ❌ | Max papers per email | `10` |
 | `arxiv_query` | ❌ | ArXiv categories | `"cs.AI+cs.CV"` |
 | `debug` | ❌ | Enable debug mode | `false` |
@@ -88,7 +67,6 @@ The agent uses a JSON configuration like:
    - Enable 2FA on Gmail account
 
 3. **"OpenAI API key invalid"**
-   - Check API key format starts with `sk-`
    - Verify account has credits
 
 4. **"No papers found"**

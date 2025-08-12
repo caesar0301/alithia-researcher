@@ -7,9 +7,8 @@ from typing import Any, Dict
 
 from langgraph.graph import StateGraph
 
-from alithia.core.agent_state import AgentState
-
 from .nodes import filter_results_node, scan_sources_node, send_alert_node
+from .state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +53,7 @@ class VigilAgent:
             Final state dictionary with results.
         """
         logger.info("Starting AlithiaVigil workflow...")
-        initial_state = AgentState(profile=None, debug_mode=config.get("debug", False))
+        initial_state = AgentState(config=None, debug_mode=config.get("debug", False))
         # Attach topics into state for nodes
         initial_state_dict = initial_state.model_dump()
         initial_state_dict["topics"] = config.get("topics", [])

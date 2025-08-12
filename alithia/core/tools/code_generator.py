@@ -6,7 +6,15 @@ from langchain_core.tools import BaseTool
 from pydantic import BaseModel
 
 from alithia.core.llm_utils import get_llm
-from alithia.core.profile import ResearchProfile
+from alithia.core.researcher.connected import (
+    EmailConnection,
+    GithubConnection,
+    GoogleScholarConnection,
+    LLMConnection,
+    XConnection,
+    ZoteroConnection,
+)
+from alithia.core.researcher.profile import ResearcherProfile
 
 from .base import ToolInput, ToolOutput
 from .models import StructuredPaper
@@ -16,7 +24,7 @@ class CodeGeneratorInput(ToolInput):
     pseudocode_element: Dict[str, Any]
     source_paper: StructuredPaper
     related_elements: Optional[List[Dict[str, Any]]] = None
-    profile: Optional[ResearchProfile] = None
+    profile: Optional[ResearcherProfile] = None
 
 
 class CodeGeneratorOutput(ToolOutput):
@@ -32,7 +40,17 @@ class CodeGeneratorTool(BaseTool):
         profile = inputs.profile
         if profile is None:
             # Minimal default profile
-            profile = ResearchProfile(zotero_id="", zotero_key="")
+            profile = ResearcherProfile(
+                email="default@example.com",
+                zotero=ZoteroConnection(zotero_id="", zotero_key=""),
+                llm=LLMConnection(openai_api_key="", openai_api_base="https://api.openai.com/v1", model_name="gpt-4o"),
+                email_notification=EmailConnection(
+                    smtp_server="", smtp_port=587, sender_email="", sender_password="", receiver_email=""
+                ),
+                github=GithubConnection(github_username="", github_token=""),
+                google_scholar=GoogleScholarConnection(google_scholar_id="", google_scholar_token=""),
+                x=XConnection(x_username="", x_token=""),
+            )
         llm = get_llm(profile)
 
         prompt_messages = self._build_prompt(inputs)
@@ -41,7 +59,7 @@ class CodeGeneratorTool(BaseTool):
         return CodeGeneratorOutput(generated_code=code)
 
     # BaseTool sync run implementation (structured)
-    def _run(self, pseudocode_element: Dict[str, Any], source_paper: StructuredPaper, related_elements: Optional[List[Dict[str, Any]]] = None, profile: Optional[ResearchProfile] = None) -> CodeGeneratorOutput:  # type: ignore[override]
+    def _run(self, pseudocode_element: Dict[str, Any], source_paper: StructuredPaper, related_elements: Optional[List[Dict[str, Any]]] = None, profile: Optional[ResearcherProfile] = None) -> CodeGeneratorOutput:  # type: ignore[override]
         return self.execute(
             CodeGeneratorInput(
                 pseudocode_element=pseudocode_element,

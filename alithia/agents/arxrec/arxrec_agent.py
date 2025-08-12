@@ -7,9 +7,6 @@ from typing import Any, Dict
 
 from langgraph.graph import StateGraph
 
-from alithia.core.agent_state import AgentState
-from alithia.core.profile import ResearchProfile
-
 from .nodes import (
     communication_node,
     content_generation_node,
@@ -17,6 +14,7 @@ from .nodes import (
     profile_analysis_node,
     relevance_assessment_node,
 )
+from .state import AgentState, ArxrecConfig
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +52,12 @@ class ArxrecAgent:
         # Compile with state configuration to ensure proper state handling
         return workflow.compile()
 
-    def run(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def run(self, config: ArxrecConfig) -> Dict[str, Any]:
         """
         Run the research agent with given configuration.
 
         Args:
-            config: Configuration dictionary with all necessary parameters
+            config: ArxrecConfig object with all necessary parameters
 
         Returns:
             Final state dictionary with results
@@ -67,8 +65,7 @@ class ArxrecAgent:
         logger.info("Starting research agent workflow...")
 
         # Create initial state
-        profile = ResearchProfile.from_config(config)
-        initial_state = AgentState(profile=profile, debug_mode=config.get("debug", False))
+        initial_state = AgentState(config=config, debug_mode=getattr(config, "debug", False))
 
         try:
             # Run workflow
@@ -104,38 +101,6 @@ class ArxrecAgent:
         except Exception as e:
             logger.error(f"Workflow failed: {str(e)}")
             return {"success": False, "error": str(e), "errors": initial_state.error_log}
-
-    def run_with_profile(self, profile: ResearchProfile, debug: bool = False) -> Dict[str, Any]:
-        """
-        Run the research agent with a pre-configured profile.
-
-        Args:
-            profile: ResearchProfile instance
-            debug: Enable debug mode
-
-        Returns:
-            Final state dictionary with results
-        """
-        config = {
-            "zotero_id": profile.zotero_id,
-            "zotero_key": profile.zotero_key,
-            "zotero_ignore": "\n".join(profile.ignore_patterns),
-            "send_empty": profile.send_empty,
-            "max_paper_num": profile.max_papers,
-            "arxiv_query": profile.arxiv_query,
-            "smtp_server": profile.smtp_server,
-            "smtp_port": profile.smtp_port,
-            "sender": profile.sender_email,
-            "receiver": profile.receiver_email,
-            "sender_password": profile.sender_password,
-            "openai_api_key": profile.openai_api_key,
-            "openai_api_base": profile.openai_api_base,
-            "model_name": profile.model_name,
-            "language": profile.language,
-            "debug": debug,
-        }
-
-        return self.run(config)
 
     def get_workflow_info(self) -> Dict[str, Any]:
         """

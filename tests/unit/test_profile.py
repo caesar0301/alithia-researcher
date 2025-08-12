@@ -1,54 +1,103 @@
 import pytest
 
-from alithia.core.profile import ResearchProfile
+from alithia.core.researcher.connected import (
+    EmailConnection,
+    GithubConnection,
+    GoogleScholarConnection,
+    LLMConnection,
+    XConnection,
+    ZoteroConnection,
+)
+from alithia.core.researcher.profile import ResearcherProfile
 
 
 @pytest.mark.unit
 def test_profile_from_config_defaults_and_values():
     cfg = {
-        "zotero_id": "zid",
-        "zotero_key": "zkey",
+        "email": "test@example.com",
         "research_interests": ["AI"],
         "expertise_level": "advanced",
         "language": "English",
-        "max_paper_num": 30,
-        "send_empty": True,
-        "zotero_ignore": "a\n b\n",
-        "smtp_server": "smtp.example.com",
-        "smtp_port": 587,
-        "sender": "sender@example.com",
-        "sender_password": "pass",
-        "receiver": "recv@example.com",
-        "openai_api_key": "ok",
-        "openai_api_base": "http://base",
-        "model_name": "gpt-x",
-        "arxiv_query": "cs.AI",
+        "zotero": {
+            "zotero_id": "zid",
+            "zotero_key": "zkey",
+        },
+        "llm": {
+            "openai_api_key": "ok",
+            "openai_api_base": "http://base",
+            "model_name": "gpt-x",
+        },
+        "email_notification": {
+            "smtp_server": "smtp.example.com",
+            "smtp_port": 587,
+            "sender_email": "sender@example.com",
+            "sender_password": "pass",
+            "receiver_email": "recv@example.com",
+        },
+        "github": {
+            "github_username": "test_user",
+            "github_token": "test_token",
+        },
+        "google_scholar": {
+            "google_scholar_id": "test_id",
+            "google_scholar_token": "test_token",
+        },
+        "x": {
+            "x_username": "test_user",
+            "x_token": "test_token",
+        },
     }
-    p = ResearchProfile.from_config(cfg)
+    p = ResearcherProfile.from_config(cfg)
 
-    assert p.zotero_id == "zid"
-    assert p.max_papers == 30
-    assert p.send_empty is True
-    assert p.ignore_patterns == ["a", " b"]
-    assert p.model_name == "gpt-x"
+    assert p.email == "test@example.com"
+    assert p.research_interests == ["AI"]
+    assert p.expertise_level == "advanced"
+    assert p.language == "English"
+    assert p.zotero.zotero_id == "zid"
+    assert p.zotero.zotero_key == "zkey"
+    assert p.llm.openai_api_key == "ok"
+    assert p.llm.model_name == "gpt-x"
 
 
 @pytest.mark.unit
 def test_profile_validate_missing_fields():
-    p = ResearchProfile(
-        zotero_id="",
-        zotero_key="",
-    )
-    errs = p.validate()
-    assert "Zotero ID is required" in errs
-    assert "Zotero API key is required" in errs
-    assert "SMTP server is required" in errs
-    assert "Sender email is required" in errs
-    assert "Receiver email is required" in errs
+    # Test that creating a profile with missing required fields raises validation error
+    with pytest.raises(Exception):
+        p = ResearcherProfile(
+            # Missing email field
+            zotero=ZoteroConnection(zotero_id="test_id", zotero_key="test_key"),
+            llm=LLMConnection(
+                openai_api_key="test_key", openai_api_base="https://api.openai.com/v1", model_name="gpt-4o"
+            ),
+            email_notification=EmailConnection(
+                smtp_server="smtp.test.com",
+                smtp_port=587,
+                sender_email="test@example.com",
+                sender_password="test_pass",
+                receiver_email="test@example.com",
+            ),
+            github=GithubConnection(github_username="test_user", github_token="test_token"),
+            google_scholar=GoogleScholarConnection(google_scholar_id="test_id", google_scholar_token="test_token"),
+            x=XConnection(x_username="test_user", x_token="test_token"),
+        )
 
 
 @pytest.mark.unit
 def test_profile_validate_llm_requires_key():
-    p = ResearchProfile(zotero_id="a", zotero_key="b")
-    errs = p.validate()
-    assert "OpenAI API key is required when using LLM API" in errs
+    # Test that creating a profile with missing LLM connection raises validation error
+    with pytest.raises(Exception):
+        p = ResearcherProfile(
+            email="test@example.com",
+            zotero=ZoteroConnection(zotero_id="a", zotero_key="b"),
+            # Missing llm field
+            email_notification=EmailConnection(
+                smtp_server="smtp.test.com",
+                smtp_port=587,
+                sender_email="test@example.com",
+                sender_password="pass",
+                receiver_email="test@example.com",
+            ),
+            github=GithubConnection(github_username="test_user", github_token="test_token"),
+            google_scholar=GoogleScholarConnection(google_scholar_id="test_id", google_scholar_token="test_token"),
+            x=XConnection(x_username="test_user", x_token="test_token"),
+        )

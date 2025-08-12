@@ -7,15 +7,30 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from .paper import ArxivPaper, EmailContent, ScoredPaper
-from .profile import ResearchProfile
+from alithia.core.paper import ArxivPaper, EmailContent, ScoredPaper
+from alithia.core.researcher import ResearcherProfile
+
+
+class ArxrecConfig(BaseModel):
+    """Arxrec configuration."""
+
+    # User Profile
+    user_profile: ResearcherProfile
+
+    # Agent Config
+    query: str = "cs.AI+cs.CV+cs.LG+cs.CL"
+    max_papers: int = 50
+    send_empty: bool = False
+    ignore_patterns: List[str] = Field(default_factory=list)
+
+    debug: bool = False
 
 
 class AgentState(BaseModel):
     """Centralized state for the research agent workflow."""
 
-    # User Profile
-    profile: Optional[ResearchProfile] = None
+    # Agent Config
+    config: ArxrecConfig
 
     # Discovery State
     discovered_papers: List[ArxivPaper] = Field(default_factory=list)

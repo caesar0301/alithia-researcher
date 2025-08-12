@@ -36,10 +36,10 @@ jobs:
 
     - name: Run ArXiv Research Agent (Debug Mode)
       env:
-        ARXREC_AGENT_CONFIG: ${{ secrets.ARXREC_AGENT_CONFIG }}
+        ALITHIA_CONFIG_JSON: ${{ secrets.ALITHIA_CONFIG_JSON }}
       run: |
         # Parse the JSON config from environment variable
-        echo "$ARXREC_AGENT_CONFIG" > arxrec_config_test.json
+        echo "$ALITHIA_CONFIG_JSON" > arxrec_config_test.json
 
         # Modify config to enable debug mode
         poetry run python -c "

@@ -1,4 +1,4 @@
-from alithia.core.tools.base import BaseTool, ToolInput, ToolOutput
+from alithia.core.tools import BaseTool, ToolInput, ToolOutput
 
 
 class EchoInput(ToolInput):

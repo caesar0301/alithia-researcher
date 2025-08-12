@@ -8,12 +8,13 @@ from typing import List
 
 import feedparser
 
-from alithia.core.agent_state import AgentState
 from alithia.core.email_utils import construct_email_content, send_email
 from alithia.core.embedding import EmbeddingService
 from alithia.core.paper import ArxivPaper, ScoredPaper
 from alithia.core.table_store import SupabaseTableStore
 from alithia.core.vector_store import PineconeVectorStore
+
+from .state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ def scan_sources_node(state: AgentState) -> dict:
     """
     logger.info(">>> Executing Node: scan_sources <<<")
 
-    topics = state.get("topics", []) or []
+    topics = state.config.topics or []
     if not topics:
         logger.info("No topics provided to Vigil. Skipping scan.")
         return {"discovered_papers": [], "current_step": "scan_complete"}
@@ -83,7 +84,7 @@ def filter_results_node(state: AgentState) -> dict:
     if not papers:
         return {"scored_papers": [], "current_step": "filter_complete"}
 
-    topics = state.get("topics", []) or []
+    topics = state.config.topics or []
     query_text = "; ".join(topics)
 
     embed = EmbeddingService()
@@ -160,7 +161,7 @@ def send_alert_node(state: AgentState) -> dict:
         logger.info("No relevant items; skip sending unless SEND_EMPTY=true in profile.")
 
     # Reuse email configuration from profile if present
-    profile = state.get("profile")
+    profile = state.config.user_profile
     if not profile:
         logger.info("No profile provided; skipping email delivery.")
         return {"current_step": "workflow_complete"}

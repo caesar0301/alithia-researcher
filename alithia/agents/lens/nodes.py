@@ -6,12 +6,14 @@ import logging
 import os
 from typing import Literal, Optional
 
-from alithia.core.agent_state import AgentState
 from alithia.core.embedding import EmbeddingService
 from alithia.core.llm_utils import get_llm
 from alithia.core.pdf_processor import PDFProcessor
+from alithia.core.researcher.connected import ZoteroConnection
 from alithia.core.table_store import SupabaseTableStore
 from alithia.core.vector_store import PineconeVectorStore
+
+from .state import AgentState
 
 logger = logging.getLogger(__name__)
 
@@ -159,11 +161,13 @@ def process_query_node(state: AgentState) -> dict:
     # Reuse profile if available; otherwise create a minimal temporary profile-like obj
     profile = state.get("profile")
     if profile is None:
-        from alithia.core.profile import ResearchProfile
+        from alithia.core.researcher.profile import ResearcherProfile
 
-        profile = ResearchProfile(
-            zotero_id="",
-            zotero_key="",
+        profile = ResearcherProfile(
+            zotero=ZoteroConnection(
+                zotero_id="",
+                zotero_key="",
+            ),
         )
     llm = get_llm(profile)
     answer = llm.generate(

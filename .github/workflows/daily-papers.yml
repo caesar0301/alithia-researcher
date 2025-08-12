@@ -42,10 +42,10 @@ jobs:
 
     - name: Run ArXiv Research Agent
       env:
-        ARXREC_AGENT_CONFIG: ${{ secrets.ARXREC_AGENT_CONFIG }}
+        ALITHIA_CONFIG_JSON: ${{ secrets.ALITHIA_CONFIG_JSON }}
       run: |
         # Parse the JSON config from environment variable
-        echo "$ARXREC_AGENT_CONFIG" > arxrec_config.json
+        echo "$ALITHIA_CONFIG_JSON" > arxrec_config.json
         poetry run python -m alithia.agents.arxrec --config arxrec_config.json
 
     - name: Upload logs on failure
