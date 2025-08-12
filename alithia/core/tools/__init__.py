@@ -1,4 +1,6 @@
-from .base import BaseTool, ToolInput, ToolOutput
+from langchain_core.tools import BaseTool
+
+from .base import ToolInput, ToolOutput
 from .models import (
     AlgorithmElement,
     BibliographyEntry,
