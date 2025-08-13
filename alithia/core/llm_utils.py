@@ -3,7 +3,6 @@ LLM utilities for content generation using cogents.common.llm.
 """
 
 import logging
-import os
 
 from cogents.common.llm import get_llm_client
 
@@ -22,14 +21,13 @@ def get_llm(conn: LLMConnection):
     Returns:
         LLM client instance
     """
-    # Configure API settings
-    if conn.openai_api_key:
-        os.environ["OPENAI_API_KEY"] = conn.openai_api_key
-        if conn.openai_api_base:
-            os.environ["OPENAI_BASE_URL"] = conn.openai_api_base
-
     try:
-        llm = get_llm_client(provider="openai", chat_model=conn.model_name)
+        llm = get_llm_client(
+            provider="openai",
+            api_key=conn.openai_api_key,
+            base_url=conn.openai_api_base,
+            chat_model=conn.model_name,
+        )
         # Set the chat_model attribute for testing purposes
         llm.chat_model = conn.model_name
         return llm
