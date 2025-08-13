@@ -6,12 +6,6 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
-  run-only-on-main:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "This runs only on main or master"
-
   run-arxrec-agent:
     runs-on: ubuntu-latest
 
