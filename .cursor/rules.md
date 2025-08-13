@@ -56,8 +56,9 @@
 - **Directory layout**: Follow structure in `specs/prd.md`.
 - **Common modules**: Place shared utilities in `alithia/core` and reuse across agents (PDF parsing, embeddings, vector/table stores, LLM utils).
 - **Imports**: Agents should import from `alithia/core/*` for shared logic.
-- **Code style**: Follow the repository’s formatting and typing discipline (pydantic models, explicit types for public APIs, early returns, minimal nesting).
+- **Code style**: Follow the repository's formatting and typing discipline (pydantic models, explicit types for public APIs, early returns, minimal nesting).
 - **Data models**: Implement data models based on pydantic library instead of dataclasses.
+- **Pydantic optimization**: Avoid creating redundant `from_config` or similar factory methods that simply pass dictionary values to the model constructor. Use Pydantic's built-in functionality: `ModelClass(**config)` instead of `ModelClass.from_config(config)`. This eliminates code duplication and leverages Pydantic's native validation and type conversion.
 
 ### Testing and Ops
 

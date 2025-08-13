@@ -169,11 +169,11 @@ def send_alert_node(state: AgentState) -> dict:
     email_content = construct_email_content(scored)
     try:
         ok = send_email(
-            sender=profile.sender_email,
-            receiver=profile.receiver_email,
-            password=profile.sender_password,
-            smtp_server=profile.smtp_server,
-            smtp_port=profile.smtp_port,
+            sender=profile.email_notification.sender,
+            receiver=profile.email_notification.receiver,
+            password=profile.email_notification.sender_password,
+            smtp_server=profile.email_notification.smtp_server,
+            smtp_port=profile.email_notification.smtp_port,
             html_content=email_content.html_content,
         )
         if ok:

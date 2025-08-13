@@ -43,7 +43,9 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
 
     config_file = config_path or os.path.join(os.path.dirname(__file__), "alithia_config.json")
     if os.path.exists(config_file):
-        config_dict = _load_config_from_file(config_file)
+        file_dict = _load_config_from_file(config_file)
+        # merge file config and env config with env config taking precedence
+        config_dict = _merge_configs(file_dict, env_config)
     else:
         config_dict = env_config
 
@@ -87,29 +89,29 @@ def _build_config_from_envs() -> Dict[str, Any]:
     # Map environment variables to nested config structure
     env_mapping = {
         # General settings
-        "research_interests": "RESEARCH_INTERESTS",
-        "expertise_level": "EXPERTISE_LEVEL",
-        "language": "LANGUAGE",
-        "email": "EMAIL",
-        "debug": "DEBUG",
+        "research_interests": "ALITHIA_RESEARCH_INTERESTS",
+        "expertise_level": "ALITHIA_EXPERTISE_LEVEL",
+        "language": "ALITHIA_LANGUAGE",
+        "email": "ALITHIA_EMAIL",
+        "debug": "ALITHIA_DEBUG",
         # LLM settings
-        "llm.openai_api_key": "OPENAI_API_KEY",
-        "llm.openai_api_base": "OPENAI_API_BASE",
-        "llm.model_name": "MODEL_NAME",
+        "llm.openai_api_key": "ALITHIA_OPENAI_API_KEY",
+        "llm.openai_api_base": "ALITHIA_OPENAI_API_BASE",
+        "llm.model_name": "ALITHIA_MODEL_NAME",
         # Zotero settings
-        "zotero.zotero_id": "ZOTERO_ID",
-        "zotero.zotero_key": "ZOTERO_KEY",
+        "zotero.zotero_id": "ALITHIA_ZOTERO_ID",
+        "zotero.zotero_key": "ALITHIA_ZOTERO_KEY",
         # Email notification settings
-        "email_notification.smtp_server": "SMTP_SERVER",
-        "email_notification.smtp_port": "SMTP_PORT",
-        "email_notification.sender_email": "SENDER",
-        "email_notification.sender_password": "SENDER_PASSWORD",
-        "email_notification.receiver_email": "RECEIVER",
+        "email_notification.smtp_server": "ALITHIA_SMTP_SERVER",
+        "email_notification.smtp_port": "ALITHIA_SMTP_PORT",
+        "email_notification.sender": "ALITHIA_SENDER",
+        "email_notification.sender_password": "ALITHIA_SENDER_PASSWORD",
+        "email_notification.receiver": "ALITHIA_RECEIVER",
         # Arxrec specific settings
-        "arxrec.query": "ARXIV_QUERY",
-        "arxrec.max_papers": "MAX_PAPER_NUM",
-        "arxrec.send_empty": "SEND_EMPTY",
-        "arxrec.ignore_patterns": "ZOTERO_IGNORE",
+        "arxrec.query": "ALITHIA_ARXIV_QUERY",
+        "arxrec.max_papers": "ALITHIA_MAX_PAPER_NUM",
+        "arxrec.send_empty": "ALITHIA_SEND_EMPTY",
+        "arxrec.ignore_patterns": "ALITHIA_ZOTERO_IGNORE",
     }
 
     for config_key, env_key in env_mapping.items():

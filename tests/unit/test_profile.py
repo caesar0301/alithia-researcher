@@ -30,9 +30,9 @@ def test_profile_from_config_defaults_and_values():
         "email_notification": {
             "smtp_server": "smtp.example.com",
             "smtp_port": 587,
-            "sender_email": "sender@example.com",
+            "sender": "sender@example.com",
             "sender_password": "pass",
-            "receiver_email": "recv@example.com",
+            "receiver": "recv@example.com",
         },
         "github": {
             "github_username": "test_user",
@@ -72,9 +72,9 @@ def test_profile_validate_missing_fields():
             email_notification=EmailConnection(
                 smtp_server="smtp.test.com",
                 smtp_port=587,
-                sender_email="test@example.com",
+                sender="test@example.com",
                 sender_password="test_pass",
-                receiver_email="test@example.com",
+                receiver="test@example.com",
             ),
             github=GithubConnection(github_username="test_user", github_token="test_token"),
             google_scholar=GoogleScholarConnection(google_scholar_id="test_id", google_scholar_token="test_token"),
@@ -93,9 +93,9 @@ def test_profile_validate_llm_requires_key():
             email_notification=EmailConnection(
                 smtp_server="smtp.test.com",
                 smtp_port=587,
-                sender_email="test@example.com",
+                sender="test@example.com",
                 sender_password="pass",
-                receiver_email="test@example.com",
+                receiver="test@example.com",
             ),
             github=GithubConnection(github_username="test_user", github_token="test_token"),
             google_scholar=GoogleScholarConnection(google_scholar_id="test_id", google_scholar_token="test_token"),

@@ -1,4 +1,3 @@
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -24,9 +23,9 @@ def test_get_llm_sets_env_and_model():
         email_notification=EmailConnection(
             smtp_server="smtp.test.com",
             smtp_port=587,
-            sender_email="test@example.com",
+            sender="test@example.com",
             sender_password="test_pass",
-            receiver_email="test@example.com",
+            receiver="test@example.com",
         ),
         github=GithubConnection(github_username="test_user", github_token="test_token"),
         google_scholar=GoogleScholarConnection(google_scholar_id="test_id", google_scholar_token="test_token"),
@@ -37,8 +36,6 @@ def test_get_llm_sets_env_and_model():
     with patch("alithia.core.llm_utils.get_llm_client", return_value=fake_client) as mock_get:
         get_llm(profile.llm)
 
-    assert os.environ.get("OPENAI_API_KEY") == "secret"
-    assert os.environ.get("OPENAI_BASE_URL") == "http://base"
     assert fake_client.chat_model == "gpt-x"
     # called with provider openai and chat_model
-    mock_get.assert_called_with(provider="openai", chat_model="gpt-x")
+    mock_get.assert_called_with(provider="openai", api_key="secret", base_url="http://base", chat_model="gpt-x")

@@ -206,6 +206,8 @@ def send_email(sender: str, receiver: str, password: str, smtp_server: str, smtp
     Returns:
         True if email sent successfully, False otherwise
     """
+    if sender == "" or receiver == "" or password == "" or smtp_server == "" or smtp_port == 0:
+        raise Exception("Email configuration is not set correctly")
 
     def _format_addr(s):
         name, addr = parseaddr(s)
@@ -218,19 +220,33 @@ def send_email(sender: str, receiver: str, password: str, smtp_server: str, smtp
     today = datetime.now().strftime("%Y/%m/%d")
     msg["Subject"] = Header(f"Daily arXiv {today}", "utf-8").encode()
 
+    server = None
     try:
-        # Try TLS first
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=30)
+        server.ehlo()
         server.starttls()
-    except Exception:
-        # Fall back to SSL
-        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        server.ehlo()
+    except Exception as e:
+        if server:
+            try:
+                server.quit()
+            except:
+                pass
+        try:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=30)
+            server.ehlo()
+        except Exception as ssl_error:
+            raise Exception(f"Failed to connect to SMTP server: {e} (TLS) and {ssl_error} (SSL)")
 
     try:
         server.login(sender, password)
         server.sendmail(sender, [receiver], msg.as_string())
-        server.quit()
         return True
     except Exception as e:
-        server.quit()
-        raise e
+        raise Exception(f"Unexpected error during email sending: {e}")
+    finally:
+        if server:
+            try:
+                server.quit()
+            except:
+                pass

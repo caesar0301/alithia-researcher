@@ -45,7 +45,7 @@ class CodeGeneratorTool(BaseTool):
                 zotero=ZoteroConnection(zotero_id="", zotero_key=""),
                 llm=LLMConnection(openai_api_key="", openai_api_base="https://api.openai.com/v1", model_name="gpt-4o"),
                 email_notification=EmailConnection(
-                    smtp_server="", smtp_port=587, sender_email="", sender_password="", receiver_email=""
+                    smtp_server="", smtp_port=587, sender="", sender_password="", receiver=""
                 ),
                 github=GithubConnection(github_username="", github_token=""),
                 google_scholar=GoogleScholarConnection(google_scholar_id="", google_scholar_token=""),

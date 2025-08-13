@@ -29,9 +29,9 @@ def _validate_user_profile(user_profile: ResearcherProfile) -> List[str]:
         errors.append("Zotero API key is required")
     if not user_profile.email_notification.smtp_server:
         errors.append("SMTP server is required")
-    if not user_profile.email_notification.sender_email:
+    if not user_profile.email_notification.sender:
         errors.append("Sender email is required")
-    if not user_profile.email_notification.receiver_email:
+    if not user_profile.email_notification.receiver:
         errors.append("Receiver email is required")
     if not user_profile.llm.openai_api_key:
         errors.append("OpenAI API key is required when using LLM API")
@@ -233,8 +233,8 @@ def communication_node(state: AgentState) -> dict:
     try:
         # Send email
         success = send_email(
-            sender=state.config.user_profile.email_notification.sender_email,
-            receiver=state.config.user_profile.email_notification.receiver_email,
+            sender=state.config.user_profile.email_notification.sender,
+            receiver=state.config.user_profile.email_notification.receiver,
             password=state.config.user_profile.email_notification.sender_password,
             smtp_server=state.config.user_profile.email_notification.smtp_server,
             smtp_port=state.config.user_profile.email_notification.smtp_port,
@@ -255,5 +255,6 @@ def communication_node(state: AgentState) -> dict:
             return {"current_step": "communication_error"}
 
     except Exception as e:
+        logger.error(f"Email delivery failed: {str(e)}")
         state.add_error(f"Email delivery failed: {str(e)}")
         return {"current_step": "communication_error"}

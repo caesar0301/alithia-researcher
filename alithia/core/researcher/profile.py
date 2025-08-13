@@ -51,12 +51,12 @@ class ResearcherProfile(BaseModel):
             expertise_level=config.get("expertise_level", "intermediate"),
             language=config.get("language", "English"),
             email=config.get("email", ""),
-            llm=LLMConnection.from_config(config.get("llm", {})),
-            zotero=ZoteroConnection.from_config(config.get("zotero", {})),
-            email_notification=EmailConnection.from_config(config.get("email_notification", {})),
-            github=GithubConnection.from_config(config.get("github", {})),
-            google_scholar=GoogleScholarConnection.from_config(config.get("google_scholar", {})),
-            x=XConnection.from_config(config.get("x", {})),
+            llm=LLMConnection(**config.get("llm", {})),
+            zotero=ZoteroConnection(**config.get("zotero", {})),
+            email_notification=EmailConnection(**config.get("email_notification", {})),
+            github=GithubConnection(**config.get("github", {})),
+            google_scholar=GoogleScholarConnection(**config.get("google_scholar", {})),
+            x=XConnection(**config.get("x", {})),
             gems=config.get("gems", {}),
         )
 
