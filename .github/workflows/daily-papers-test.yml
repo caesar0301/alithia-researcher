@@ -2,8 +2,6 @@ name: Daily Papers Test - ArXiv Research Agent (Debug)
 
 on:
   workflow_dispatch:  # Manual trigger only for testing
-  pull_request:
-    branches: [ main, develop ]
 
 jobs:
   test-arxrec-agent:
