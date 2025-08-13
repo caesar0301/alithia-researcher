@@ -36,15 +36,15 @@ In Alithia, we connect each researcher’s profile with publicly available acade
 
 An paper recommendation agent, by connection researcher profile and arXiv paper updates. The original version of arxrec agent is based on [zotero-arxiv-daily](https://github.com/TideDra/zotero-arxiv-daily). Thanks for [@TideDra](https://github.com/TideDra).
 
-See [ALITHIA_ARXREC_AGENT.md](ALITHIA_ARXREC_AGENT.md)
+See [ALITHIA_ARXREC_AGENT.md](docs/guide/ALITHIA_ARXREC_AGENT.md)
 
 ### Alithia Lens Agent (oncoming)
 
-See [ALITHIA_LENS_AGENT.md](ALITHIA_LENS_AGENT.md)
+See [ALITHIA_LENS_AGENT.md](docs/guide/ALITHIA_LENS_AGENT.md)
 
 ### Alithia Vigil Agent (oncoming)
 
-See [ALITHIA_VIGIL_AGENT.md](ALITHIA_VIGIL_AGENT.md)
+See [ALITHIA_VIGIL_AGENT.md](docs/guide/ALITHIA_VIGIL_AGENT.md)
 
 ## Development
 
