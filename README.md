@@ -46,20 +46,6 @@ See [ALITHIA_LENS_AGENT.md](docs/guide/ALITHIA_LENS_AGENT.md)
 
 See [ALITHIA_VIGIL_AGENT.md](docs/guide/ALITHIA_VIGIL_AGENT.md)
 
-## Development
-
-### Running Tests
-```bash
-# All tests
-make test
-
-# Unit tests only
-make test-unit
-
-# Integration tests only
-make test-integration
-```
-
 ## License
 
 AGPL-3.0
