@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alithia"
-version = "0.1.1"
+version = "0.1.2"
 description = "Your ultimate research companion"
 authors = ["xmingc <chenxm35@gmail.com>"]
 maintainers = ["xmingc <chenxm35@gmail.com>"]
