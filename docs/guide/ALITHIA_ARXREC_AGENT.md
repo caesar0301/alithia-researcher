@@ -13,7 +13,8 @@
 
 ### Configuration Structure
 
-The agent uses a global JSON configuration like `alithia_config_example.json`
+The agent uses a global JSON configuration like [alithia_config_example.json]
+(alithia/config/alithia_config_example.json).
 
 ### Required Services
 
