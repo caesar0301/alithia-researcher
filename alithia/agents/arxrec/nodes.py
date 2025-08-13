@@ -218,7 +218,7 @@ def communication_node(state: AgentState) -> dict:
 
     logger.info("Preparing email delivery...")
 
-    if not state.user_profile:
+    if not state.config.user_profile:
         state.add_error("No profile available for email delivery")
         return {"current_step": "communication_error"}
 
