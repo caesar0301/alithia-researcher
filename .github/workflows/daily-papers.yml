@@ -2,19 +2,37 @@ name: Daily Papers - ArXiv Research Agent
 
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 1 * * *'  # Run daily at 1 AM UTC
   workflow_dispatch:  # Allow manual triggering
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  # Ensure workflow runs even with repository inactivity
+  FORCE_RUN: true
 
 jobs:
   run-arxrec-agent:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Workflow Status Check
+      run: |
+        echo "🚀 Starting Daily Papers workflow"
+        echo "⏰ Triggered at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "🔗 Repository: ${{ github.repository }}"
+        echo "🌿 Branch: ${{ github.ref_name }}"
+        echo "👤 Actor: ${{ github.actor }}"
+        echo "📝 Event: ${{ github.event_name }}"
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
@@ -26,20 +44,38 @@ jobs:
         virtualenvs-in-project: true
 
     - name: Load cached dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .venv
         key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        restore-keys: |
+          venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
 
     - name: Install dependencies
-      run: poetry install --no-interaction --no-root
+      run: |
+        poetry config virtualenvs.in-project true
+        poetry install --no-interaction
 
     - name: Run ArXiv Research Agent
       env:
         ALITHIA_CONFIG_JSON: ${{ secrets.ALITHIA_CONFIG_JSON }}
       run: |
+        # Validate environment variables
+        if [ -z "$ALITHIA_CONFIG_JSON" ]; then
+          echo "❌ Error: ALITHIA_CONFIG_JSON secret is not set"
+          exit 1
+        fi
+
         # Parse the JSON config from environment variable
         echo "$ALITHIA_CONFIG_JSON" > arxrec_config.json
+
+        # Validate JSON format
+        if ! python -m json.tool arxrec_config.json > /dev/null 2>&1; then
+          echo "❌ Error: Invalid JSON in ALITHIA_CONFIG_JSON"
+          exit 1
+        fi
+
+        echo "✅ Configuration validated, starting ArXiv agent..."
         poetry run python -m alithia.agents.arxrec --config arxrec_config.json
 
     - name: Upload logs on failure
@@ -51,3 +87,15 @@ jobs:
           *.log
           arxrec_config.json
         retention-days: 7
+
+    - name: Workflow Completion Status
+      if: always()
+      run: |
+        echo "🏁 Workflow completed at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Status: SUCCESS"
+        else
+          echo "❌ Status: FAILED"
+        fi
+        echo "📊 Run ID: ${{ github.run_id }}"
+        echo "🔗 Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
