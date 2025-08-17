@@ -68,14 +68,6 @@ jobs:
 
         # Parse the JSON config from environment variable
         echo "$ALITHIA_CONFIG_JSON" > arxrec_config.json
-
-        # Validate JSON format
-        if ! python -m json.tool arxrec_config.json > /dev/null 2>&1; then
-          echo "❌ Error: Invalid JSON in ALITHIA_CONFIG_JSON"
-          exit 1
-        fi
-
-        echo "✅ Configuration validated, starting ArXiv agent..."
         poetry run python -m alithia.agents.arxrec --config arxrec_config.json
 
     - name: Upload logs on failure
