@@ -1,4 +1,4 @@
-# Alithia Researcher
+# Alithia Voyager
 
 Time is one of the most valuable resources for a human researcher, best spent
 on thinking, exploring, and creating in the world of ideas. With Alithia, we
@@ -6,7 +6,7 @@ aim to open a new frontier in research assistance. Alithia aspires to be your
 powerful research companion: from reading papers to pursuing interest-driven
 deep investigations, from reproducing experiments to detecting fabricated
 results, from tracking down relevant papers to monitoring industrial
-breakthroughs. At its core, Alithia forges a strong link between your personal
+breakthroughs. At its core, Alithia forges a strong and instant link between your personal
 research profile, the latest state-of-the-art developments, and pervasive cloud
 resources, ensuring you stay informed, empowered, and ahead.
 
