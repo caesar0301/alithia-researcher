@@ -1,4 +1,4 @@
-name: Daily Papers - ArXiv Research Agent
+name: Daily Papers
 
 on:
   schedule:

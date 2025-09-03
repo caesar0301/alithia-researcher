@@ -1,4 +1,4 @@
-name: Daily Papers Test - ArXiv Research Agent (Debug)
+name: Daily Papers (Debug)
 
 on:
   workflow_dispatch:  # Manual trigger only for testing
