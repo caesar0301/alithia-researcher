@@ -241,9 +241,7 @@ def communication_node(state: AgentState) -> dict:
             html_content=(
                 state.email_content
                 if isinstance(state.email_content, str)
-                else state.email_content.html_content
-                if state.email_content
-                else ""
+                else state.email_content.html_content if state.email_content else ""
             ),
         )
 

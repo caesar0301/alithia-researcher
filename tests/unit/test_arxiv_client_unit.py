@@ -101,9 +101,10 @@ class TestArxivClientUnit:
         mock_paper.pdf_url = "http://example.com/paper.pdf"
         mock_paper.published = "2024-01-01"
 
-        with patch("alithia.core.arxiv_client.feedparser") as mock_feedparser, patch(
-            "alithia.core.arxiv_client.arxiv"
-        ) as mock_arxiv:
+        with (
+            patch("alithia.core.arxiv_client.feedparser") as mock_feedparser,
+            patch("alithia.core.arxiv_client.arxiv") as mock_arxiv,
+        ):
             mock_feedparser.parse.return_value = mock_feed
 
             # Mock the client and search

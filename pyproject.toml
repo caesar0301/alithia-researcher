@@ -51,10 +51,9 @@ psycopg2-binary = "^2.9.0"
 autoflake = "^2.0.0"
 
 [tool.poetry.urls]
-Homepage = "https://github.com/caesar0301/alithia-researcher"
-Documentation = "https://alithia-researcher.readthedocs.io/"
-Repository = "https://github.com/caesar0301/alithia-researcher"
-"Bug Tracker" = "https://github.com/caesar0301/alithia-researcher/issues"
+Homepage = "https://github.com/caesar0301/alithia-voyager"
+Documentation = "https://alithia-voyager.readthedocs.io/"
+Repository = "https://github.com/caesar0301/alithia-voyager"
 
 [build-system]
 requires = ["poetry-core"]

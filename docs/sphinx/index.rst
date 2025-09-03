@@ -1,7 +1,7 @@
-.. alithia-researcher documentation master file, created by
+.. alithia-voyager documentation master file, created by
    sphinx-quickstart
 
-Welcome to alithia-researcher's documentation!
+Welcome to alithia-voyager's documentation!
 ===============================================
 
 .. toctree::

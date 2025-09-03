@@ -18,9 +18,10 @@ def test_generate_tldr_uses_llm_and_truncates_prompt():
     fake_llm = Mock()
     fake_llm.chat_completion.return_value = "TLDR"
 
-    with patch("alithia.core.arxiv_paper_utils.extract_tex_content", return_value=None), patch(
-        "alithia.core.arxiv_paper_utils.tiktoken"
-    ) as mock_tiktoken:
+    with (
+        patch("alithia.core.arxiv_paper_utils.extract_tex_content", return_value=None),
+        patch("alithia.core.arxiv_paper_utils.tiktoken") as mock_tiktoken,
+    ):
         mock_enc = Mock()
         mock_enc.encode.side_effect = lambda s: list(range(min(len(s), 8000)))
         mock_enc.decode.side_effect = lambda toks: "x" * len(toks)
@@ -42,9 +43,10 @@ def test_extract_affiliations_parses_list():
     fake_llm = Mock()
     fake_llm.chat_completion.return_value = "['Inst A', 'Inst B']"
 
-    with patch("alithia.core.arxiv_paper_utils.extract_tex_content", return_value=fake_tex), patch(
-        "alithia.core.arxiv_paper_utils.tiktoken"
-    ) as mock_tiktoken:
+    with (
+        patch("alithia.core.arxiv_paper_utils.extract_tex_content", return_value=fake_tex),
+        patch("alithia.core.arxiv_paper_utils.tiktoken") as mock_tiktoken,
+    ):
         mock_enc = Mock()
         mock_enc.encode.side_effect = lambda s: list(range(min(len(s), 8000)))
         mock_enc.decode.side_effect = lambda toks: "x" * len(toks)

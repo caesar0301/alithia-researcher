@@ -16,9 +16,10 @@ def test_supabase_table_store_env_missing_raises():
 
 @pytest.mark.unit
 def test_supabase_table_store_calls_client_methods():
-    with patch("alithia.core.table_store.os.getenv", side_effect=["url", "key"]), patch(
-        "alithia.core.table_store.create_client"
-    ) as mock_create:
+    with (
+        patch("alithia.core.table_store.os.getenv", side_effect=["url", "key"]),
+        patch("alithia.core.table_store.create_client") as mock_create,
+    ):
         mock_client = MagicMock()
         mock_create.return_value = mock_client
         store = SupabaseTableStore()
@@ -45,9 +46,10 @@ def test_pinecone_vector_store_env_missing_raises():
 
 @pytest.mark.unit
 def test_pinecone_vector_store_calls_upsert_and_query():
-    with patch("alithia.core.vector_store.os.getenv", return_value="abc"), patch(
-        "alithia.core.vector_store.Pinecone"
-    ) as mock_pc:
+    with (
+        patch("alithia.core.vector_store.os.getenv", return_value="abc"),
+        patch("alithia.core.vector_store.Pinecone") as mock_pc,
+    ):
         mock_index = MagicMock()
         mock_pc.return_value.Index.return_value = mock_index
 
