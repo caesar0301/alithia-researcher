@@ -16,35 +16,17 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Load cached dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
-
     - name: Install dependencies
       run: |
-        poetry config virtualenvs.in-project true
-        poetry install --no-interaction
+        pip install -U alithia
 
     - name: Run ArXiv Research Agent (Debug Mode)
       env:
         ALITHIA_CONFIG_JSON: ${{ secrets.ALITHIA_CONFIG_JSON }}
       run: |
-        # Parse the JSON config from environment variable
         echo "$ALITHIA_CONFIG_JSON" > arxrec_config_test.json
-
         # Modify config to enable debug mode
-        poetry run python -c "
+        python -c "
         import json
         with open('arxrec_config_test.json', 'r') as f:
             config = json.load(f)
@@ -53,14 +35,13 @@ jobs:
         with open('arxrec_config_test.json', 'w') as f:
             json.dump(config, f, indent=2)
         "
+        python -m alithia.agents.arxrec --config arxrec_config_test.json
 
-        poetry run python -m alithia.agents.arxrec --config arxrec_config_test.json
-
-    - name: Upload test logs
-      uses: actions/upload-artifact@v4
-      with:
-        name: arxrec-test-logs-${{ github.run_id }}
-        path: |
-          *.log
-          arxrec_config_test.json
-        retention-days: 7
+    # - name: Upload test logs
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: arxrec-test-logs-${{ github.run_id }}
+    #     path: |
+    #       *.log
+    #       arxrec_config_test.json
+    #     retention-days: 7

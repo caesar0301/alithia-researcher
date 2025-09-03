@@ -36,39 +36,20 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-
-    - name: Load cached dependencies
-      uses: actions/cache@v4
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-
-
     - name: Install dependencies
       run: |
-        poetry config virtualenvs.in-project true
-        poetry install --no-interaction
+        pip install -U alithia
 
     - name: Run ArXiv Research Agent
       env:
         ALITHIA_CONFIG_JSON: ${{ secrets.ALITHIA_CONFIG_JSON }}
       run: |
-        # Validate environment variables
         if [ -z "$ALITHIA_CONFIG_JSON" ]; then
           echo "❌ Error: ALITHIA_CONFIG_JSON secret is not set"
           exit 1
         fi
-
-        # Parse the JSON config from environment variable
         echo "$ALITHIA_CONFIG_JSON" > arxrec_config.json
-        poetry run python -m alithia.agents.arxrec --config arxrec_config.json
+        python -m alithia.agents.arxrec --config arxrec_config.json
 
     - name: Upload logs on failure
       if: failure()
@@ -78,7 +59,7 @@ jobs:
         path: |
           *.log
           arxrec_config.json
-        retention-days: 7
+        retention-days: 3
 
     - name: Workflow Completion Status
       if: always()
