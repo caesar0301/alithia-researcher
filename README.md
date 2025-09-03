@@ -1,5 +1,8 @@
 # Alithia Voyager
 
+[![PyPI version](https://img.shields.io/pypi/v/alithia.svg)](https://pypi.org/project/alithia/)
+
+
 Time is one of the most valuable resources for a human researcher, best spent
 on thinking, exploring, and creating in the world of ideas. With Alithia, we
 aim to open a new frontier in research assistance. Alithia aspires to be your
