@@ -8,17 +8,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
-        pip install -U alithia
+        pip install --upgrade pip wheel
+        pip install -U alithia==0.1.2
 
     - name: Run ArXiv Research Agent (Debug Mode)
       env:
@@ -36,3 +35,4 @@ jobs:
             json.dump(config, f, indent=2)
         "
         python -m alithia.agents.arxrec --config arxrec_config_test.json
+        rm -rf arxrec_config_test.json
